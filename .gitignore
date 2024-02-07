@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/bouvet_fagkaffe_frontend/obj
+/.vs
+/bouvet_fagkaffe_frontend/bin
