@@ -5,3 +5,6 @@
 /bouvet_fagkaffe_frontend/obj
 /.vs
 /bouvet_fagkaffe_frontend/bin
+/bouvet_fagkaffe_repository/obj
+/bouvet_fagkaffe_repository/bin/Debug/net8.0
+/bouvet_fagkaffe_frontend/Properties
