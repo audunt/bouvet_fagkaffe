@@ -12,8 +12,8 @@ using bouvet_fagkaffe_repository.Context;
 namespace bouvet_fagkaffe_repository.Migrations
 {
     [DbContext(typeof(FagkaffeContext))]
-    [Migration("20240210194420_InitialDbCreation")]
-    partial class InitialDbCreation
+    [Migration("20240215091658_IntialDbCreate")]
+    partial class IntialDbCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,11 +35,8 @@ namespace bouvet_fagkaffe_repository.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ProposedBy")
+                    b.Property<Guid?>("ProposedById")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("RegisteredPresenters")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -62,6 +59,8 @@ namespace bouvet_fagkaffe_repository.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ProposedById");
+
                     b.ToTable("Candidates");
                 });
 
@@ -71,12 +70,8 @@ namespace bouvet_fagkaffe_repository.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("HeldAt")
+                    b.Property<DateTimeOffset?>("HeldAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("HeldBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -100,6 +95,59 @@ namespace bouvet_fagkaffe_repository.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Lectures");
+                });
+
+            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ForeignId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Groups")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("LectureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateId");
+
+                    b.HasIndex("LectureId");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.Candidate", b =>
+                {
+                    b.HasOne("bouvet_fagkaffe_repository.Models.User", "ProposedBy")
+                        .WithMany()
+                        .HasForeignKey("ProposedById");
+
+                    b.Navigation("ProposedBy");
                 });
 
             modelBuilder.Entity("bouvet_fagkaffe_repository.Models.Lecture", b =>
@@ -130,6 +178,27 @@ namespace bouvet_fagkaffe_repository.Migrations
                         });
 
                     b.Navigation("MeetingLinks");
+                });
+
+            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.User", b =>
+                {
+                    b.HasOne("bouvet_fagkaffe_repository.Models.Candidate", null)
+                        .WithMany("RegisteredPresenters")
+                        .HasForeignKey("CandidateId");
+
+                    b.HasOne("bouvet_fagkaffe_repository.Models.Lecture", null)
+                        .WithMany("HeldBy")
+                        .HasForeignKey("LectureId");
+                });
+
+            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.Candidate", b =>
+                {
+                    b.Navigation("RegisteredPresenters");
+                });
+
+            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.Lecture", b =>
+                {
+                    b.Navigation("HeldBy");
                 });
 #pragma warning restore 612, 618
         }

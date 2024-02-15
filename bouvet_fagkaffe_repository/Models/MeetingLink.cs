@@ -4,7 +4,8 @@ namespace bouvet_fagkaffe_repository.Models;
 
 public class MeetingLink
 {
-    public Guid Id { get; set; }
+    [Key]
+    public Guid Id { get; set; } = new();
     [Required]
     public required string Description { get; set; }
     [Required]

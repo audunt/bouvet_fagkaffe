@@ -10,24 +10,38 @@ public class FagkaffeContext : DbContext
 
     public DbSet<Candidate> Candidates { get; set; }
     public DbSet<Lecture> Lectures { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Candidate>()
-            .Property(c => c.Type)
-            .HasConversion<string>();
-        modelBuilder.Entity<Candidate>()
-            .Property(c => c.Status)
-            .HasConversion<string>();
-        modelBuilder.Entity<Candidate>()
-            .Property(c => c.Format)
+        modelBuilder.Entity<Candidate>(c =>
+        {
+            c.Property(c => c.Type)
             .HasConversion<string>();
 
-        modelBuilder.Entity<Lecture>()
-            .OwnsMany(l => l.MeetingLinks);
-        modelBuilder.Entity<Lecture>()
-            .Property(l => l.Status)
+            c.Property(c => c.Status)
             .HasConversion<string>();
+
+            c.Property(c => c.Format)
+            .HasConversion<string>();
+
+            c.HasOne(c => c.ProposedBy);
+
+            c.HasMany(c => c.RegisteredPresenters)
+            .WithMany(u => u.RegisteredOnCandidates);
+        });
+
+
+        modelBuilder.Entity<Lecture>(l =>
+        {
+            l.OwnsMany(l => l.MeetingLinks);
+
+            l.Property(l => l.Status)
+            .HasConversion<string>();
+
+            l.HasMany(l => l.HeldBy)
+            .WithMany(u => u.PresentsLectures);
+        });
 
         base.OnModelCreating(modelBuilder);
     }
