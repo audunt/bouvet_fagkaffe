@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddControllers();
+
 //Adding Database conenction.
 string connection;
 if (builder.Environment.IsDevelopment())
@@ -36,15 +38,17 @@ builder.Services.AddAuthentication(sharedOptions =>
     sharedOptions.DefaultChallengeScheme = "Saml2";
 }).AddSaml2(options =>
 {
-    options.SPOptions.EntityId = new EntityId("705b4634-d459-4a4d-911d-e94fdc0d395a");
+    options.SPOptions.EntityId = new EntityId("bouvetfagkaffe.azurewebsites.net");
     options.IdentityProviders.Add(
         new IdentityProvider(
             new EntityId("https://sts.windows.net/27e71101-1d69-483a-91d0-34b1c6356c88/"), options.SPOptions)
         {
-            MetadataLocation = "https://login.microsoftonline.com/27e71101-1d69-483a-91d0-34b1c6356c88/federationmetadata/2007-06/federationmetadata.xml"
+            MetadataLocation = "https://login.microsoftonline.com/27e71101-1d69-483a-91d0-34b1c6356c88/federationmetadata/2007-06/federationmetadata.xml?appid=27fc81bd-68b3-42e5-973d-c8fa34b31034"
         });
 })
 .AddCookie();
+
+builder.Services.AddHttpContextAccessor();
 
 // Adding Authorization with SAML
 builder.Services.AddAuthorization(options =>
@@ -65,13 +69,14 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
-app.UseAntiforgery();
 
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

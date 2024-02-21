@@ -1,7 +1,25 @@
-﻿@page "/"
+﻿@inject IHttpContextAccessor httpContextAccessor
+@page "/"
+
+@{
+    var user = httpContextAccessor.HttpContext?.User;
+}
+
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+Welcome to your new app. @(user?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/FirstName")?.Value ?? "unknown");
+<br />
+Claims:
+
+@foreach(var claim in user?.Claims ?? [])
+{
+    <text>
+        Key: @claim.Type <br /> 
+        Value: @claim.Value
+        <br />
+        <br />
+    </text>
+}
