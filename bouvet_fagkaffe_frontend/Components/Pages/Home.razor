@@ -1,25 +1,84 @@
-﻿@inject IHttpContextAccessor httpContextAccessor
+﻿@using System.Security.Claims
+@inject IHttpContextAccessor _httpContextAccessor
+@inject Operations _operations
 @page "/"
-
-@{
-    var user = httpContextAccessor.HttpContext?.User;
-}
-
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Bouvet Fagkaffe</h1>
 
-Welcome to your new app. @(user?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/FirstName")?.Value ?? "unknown");
+Welcome to fagkaffe @user?.FullName()
 <br />
-Claims:
+<div>
+    These are your claims: 
+    <br />
+    <br />
+    Email: @user?.Email <br />
+    @if (user != null && user.Groups != null)
+    {
+        @foreach (var group in user.Groups)
+        {
+            <text>
+            Group: @group
+            </text>
+            <br />
+        }
+    }
+</div>
 
-@foreach(var claim in user?.Claims ?? [])
+@code
 {
-    <text>
-        Key: @claim.Type <br /> 
-        Value: @claim.Value
-        <br />
-        <br />
-    </text>
+    //Define the variables to use
+    private ClaimsPrincipal? principal;
+    private string? foreignId;
+    private string? firstName;
+    private string? lastName;
+    private string? email;
+    private List<Claim>? groups;
+    private User? user;
+
+    // override intitialization of the page
+    protected override async void OnInitialized()
+    {
+        //Get the SAML principal from context
+        principal = _httpContextAccessor.HttpContext?.User;
+        if (principal != null)
+        {
+            //Extract Claims
+            foreignId = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+            firstName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/FirstName")?.Value;
+            lastName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/LastName")?.Value;
+            email = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/Email")?.Value;
+            groups = principal.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").ToList();
+            //Check if the claims have a value
+            if (foreignId != null && firstName != null && lastName != null && email != null)
+            {
+                //check if the user exists in the database already
+                var tmpUser = _operations.GetUserByForeignId(foreignId).Result;
+                //If the user does not exist, create
+                if (tmpUser == null)
+                {
+                    tmpUser = new User()
+                        {
+                            ForeignId = foreignId,
+                            FirstName = firstName,
+                            LastName = lastName,
+                            Email = email
+                        };
+                    if (groups.Count() > 0)
+                    {
+                        foreach (Claim group in groups)
+                        {
+                            tmpUser.Groups.Add(group.ToString());
+                        }
+                    }
+                    user = await _operations.CreateUser(tmpUser);
+                }
+                user = tmpUser;
+            }   
+        }
+
+        base.OnInitialized();
+    }
+
 }

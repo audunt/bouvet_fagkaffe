@@ -1,4 +1,5 @@
 using bouvet_fagkaffe_frontend.Components;
+using bouvet_fagkaffe_repository;
 using bouvet_fagkaffe_repository.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
+
+builder.Services.AddTransient<Operations>();
 
 var app = builder.Build();
 
