@@ -20,4 +20,9 @@ public class User
     public bool IsAdmin { get; set; } = false;
     public List<Candidate> RegisteredOnCandidates { get; } = [];
     public List<Lecture> PresentsLectures { get; } = [];
+
+    public string FullName()
+    {
+        return $"{FirstName} {LastName}";
+    }
 }
