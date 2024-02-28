@@ -1,22 +1,23 @@
 ﻿@using System.Security.Claims
 @inject IHttpContextAccessor _httpContextAccessor
 @inject Operations _operations
+@inject UserSession _userSession
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Bouvet Fagkaffe</h1>
 
-Welcome to fagkaffe @user?.FullName()
+Welcome to fagkaffe @name
 <br />
 <div>
     These are your claims: 
     <br />
     <br />
-    Email: @user?.Email <br />
-    @if (user != null && user.Groups != null)
+    Email: @email <br />
+    @if (groups != null)
     {
-        @foreach (var group in user.Groups)
+        @foreach (var group in groups)
         {
             <text>
             Group: @group
@@ -29,56 +30,20 @@ Welcome to fagkaffe @user?.FullName()
 @code
 {
     //Define the variables to use
-    private ClaimsPrincipal? principal;
     private string? foreignId;
-    private string? firstName;
-    private string? lastName;
+    private string? name;
     private string? email;
     private List<Claim>? groups;
-    private User? user;
 
     // override intitialization of the page
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        //Get the SAML principal from context
-        principal = _httpContextAccessor.HttpContext?.User;
-        if (principal != null)
-        {
-            //Extract Claims
-            foreignId = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
-            firstName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/FirstName")?.Value;
-            lastName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/LastName")?.Value;
-            email = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/Email")?.Value;
-            groups = principal.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").ToList();
-            //Check if the claims have a value
-            if (foreignId != null && firstName != null && lastName != null && email != null)
-            {
-                //check if the user exists in the database already
-                var tmpUser = _operations.GetUserByForeignId(foreignId).Result;
-                //If the user does not exist, create
-                if (tmpUser == null)
-                {
-                    tmpUser = new User()
-                        {
-                            ForeignId = foreignId,
-                            FirstName = firstName,
-                            LastName = lastName,
-                            Email = email
-                        };
-                    if (groups.Count() > 0)
-                    {
-                        foreach (Claim group in groups)
-                        {
-                            tmpUser.Groups.Add(group.ToString());
-                        }
-                    }
-                    user = await _operations.CreateUser(tmpUser);
-                }
-                user = tmpUser;
-            }   
-        }
+        foreignId = _userSession.GetUserId();
+        name = _userSession.GetUserName();
+        email = _userSession.GetUserEmail();
+        groups = _userSession.GetUserGroups();
 
-        base.OnInitialized();
+        await base.OnInitializedAsync();
     }
 
 }
