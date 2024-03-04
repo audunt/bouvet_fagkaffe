@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bouvet_fagkaffe_frontend", "bouvet_fagkaffe_frontend\bouvet_fagkaffe_frontend.csproj", "{E85AFDC1-14A0-4AA2-AE5A-D93320539C47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bouvet_fagkaffe_repository", "bouvet_fagkaffe_repository\bouvet_fagkaffe_repository.csproj", "{A452D55C-E71D-47BD-A419-79137C0C85A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bouvet_fagkaffe_repository", "bouvet_fagkaffe_repository\bouvet_fagkaffe_repository.csproj", "{A452D55C-E71D-47BD-A419-79137C0C85A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,23 +1,23 @@
 ﻿@using System.Security.Claims
-@inject IHttpContextAccessor _httpContextAccessor
-@inject Operations _operations
-@inject UserSession _userSession
+@using bouvet_fagkaffe_frontend.Components.Layout
+@inject UserHelper _userHelper
+@inject AuthenticationStateProvider authenticationStateProvider
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Bouvet Fagkaffe</h1>
 
-Welcome to fagkaffe @name
+Welcome to fagkaffe @user?.FullName()
 <br />
 <div>
     These are your claims: 
     <br />
     <br />
-    Email: @email <br />
-    @if (groups != null)
+    Email: @user?.Email <br />
+    @if (user?.Groups != null)
     {
-        @foreach (var group in groups)
+        @foreach (var group in user.Groups)
         {
             <text>
             Group: @group
@@ -30,20 +30,18 @@ Welcome to fagkaffe @name
 @code
 {
     //Define the variables to use
-    private string? foreignId;
-    private string? name;
-    private string? email;
-    private List<Claim>? groups;
+    private User? user { get; set; }
+    private ClaimsPrincipal? principal { get; set; }
 
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
     {
-        foreignId = _userSession.GetUserId();
-        name = _userSession.GetUserName();
-        email = _userSession.GetUserEmail();
-        groups = _userSession.GetUserGroups();
+        var authState = await authenticationStateProvider
+                   .GetAuthenticationStateAsync();
+        principal = authState.User;
+        if (principal != null)
+            user = await _userHelper.GetUser(principal);
 
         await base.OnInitializedAsync();
     }
-
 }

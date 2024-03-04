@@ -58,8 +58,8 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-builder.Services.AddTransient<UserSession>();
-builder.Services.AddTransient<Operations>();
+builder.Services.AddScoped<UserHelper>();
+builder.Services.AddScoped<Operations>();
 
 var app = builder.Build();
 
