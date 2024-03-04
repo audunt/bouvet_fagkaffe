@@ -1,3 +1,4 @@
+using bouvet_fagkaffe_frontend;
 using bouvet_fagkaffe_frontend.Components;
 using bouvet_fagkaffe_repository;
 using bouvet_fagkaffe_repository.Context;
@@ -57,7 +58,8 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-builder.Services.AddTransient<Operations>();
+builder.Services.AddScoped<UserHelper>();
+builder.Services.AddScoped<Operations>();
 
 var app = builder.Build();
 

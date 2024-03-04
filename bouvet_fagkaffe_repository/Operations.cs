@@ -45,6 +45,19 @@ public class Operations(FagkaffeContext context)
         return user;
     }
 
+    public async Task<User> UpdateUser(User user)
+    {
+        var storedUser = await GetUser(user.Id);
+        if (storedUser != null)
+        {
+            storedUser = user;
+            await _context.SaveChangesAsync();
+        }
+        else
+            throw new Exception("failed updating the user");
+        return storedUser;
+    }
+
     public async Task<Candidate> CreateCandidate(Candidate candidate)
     {
         await _context.Candidates.AddAsync(candidate);

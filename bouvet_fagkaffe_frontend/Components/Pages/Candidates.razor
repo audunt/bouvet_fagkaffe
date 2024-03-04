@@ -1,0 +1,107 @@
+﻿@inject Operations _operations
+@inject UserHelper _userHelper
+@inject AuthenticationStateProvider authenticationStateProvider
+@rendermode InteractiveServer
+@page "/candidates"
+
+<h3>Candidates</h3>
+<p>Good morning: @user?.FullName()</p>
+<br />
+<div class="container">
+    <div class="row">
+        <div class="col-3">
+            <EditForm Model=@newCandidate OnValidSubmit="Submit" FormName="Candidate">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="form-group">
+                    <label for="topic">Topic:</label>
+                    <InputText class="form-control" @bind-Value="newCandidate!.Topic" />
+                </div>
+                <div class="form-group">
+                    <label>Summary:</label> 
+                    <InputTextArea class="form-control" @bind-Value="newCandidate.Summary" />
+                </div>
+                <div class="form-group">
+                    <label>Type:</label>
+                    <InputSelect class="form-control" @bind-Value="newCandidate.Type">
+                        <option value="@CandidateType.Request">Request</option>
+                        <option value="@CandidateType.Proposal">Proposal</option>
+                    </InputSelect>
+                </div>
+                <div class="form-group">
+                    <label>Format:</label>
+                    <InputSelect class="form-control" @bind-Value="newCandidate.Format">
+                        <option value="@Format.Online">Online</option>
+                        <option value="@Format.Physical">Physical</option>
+                    </InputSelect>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                </div>
+            </EditForm>
+        </div>
+        <div class="col-9">
+            @if (candidates != null)
+            {
+                @foreach (var candidate in candidates)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@candidate.Topic</h5>
+                            <p class="card-subtitle"><small>@candidate.Id</small></p>
+                            <p class="card-text">Summary: @candidate.Summary</p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Candidate>? candidates { get; set; }
+
+    [SupplyParameterFromForm]
+    private Candidate? newCandidate { get; set; }
+
+    private User? user { get; set; }
+    private ClaimsPrincipal? principal { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        newCandidate = new()
+            {
+                Topic = "",
+                Summary = ""
+            };
+        candidates = await _operations.GetAllCandidates();
+
+        var authState = await authenticationStateProvider
+            .GetAuthenticationStateAsync();
+        principal = authState.User;
+        if (principal != null)
+            user = await _userHelper.GetUser(principal);
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        if (newCandidate != null && user != null)
+        {
+            newCandidate.ProposedBy = user;
+            if (newCandidate.Type == CandidateType.Proposal)
+                newCandidate.RegisteredPresenters.Add(user);
+            var candidate = await _operations.CreateCandidate(newCandidate);
+            candidates!.Add(candidate);
+        }
+        else
+            throw new Exception("The user has not been set");
+        newCandidate = new()
+            {
+                Topic = "",
+                Summary = ""
+            };
+
+    }
+}

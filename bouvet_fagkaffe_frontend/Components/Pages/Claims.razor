@@ -1,19 +1,46 @@
-﻿@inject IHttpContextAccessor httpContextAccessor
+﻿@using System.Security.Claims
+@inject IHttpContextAccessor httpContextAccessor
+@inject AuthenticationStateProvider authenticationStateProvider
 @page "/claims"
 @{
-    var user = httpContextAccessor.HttpContext?.User;
+    //var user = httpContextAccessor.HttpContext?.User;
 }
 
 <PageTitle>Claims</PageTitle>
 
 <h1>Claims</h1>
 
-@foreach (var claim in user?.Claims ?? [])
+@if(user != null){
+    @foreach (var claim in user?.Claims ?? [])
+    {
+        <text>
+            Key: @claim.Type <br />
+            Value: @claim.Value
+            <br />
+            <br />
+        </text>
+    }
+
+}
+else
 {
-    <text>
-        Key: @claim.Type <br />
-        Value: @claim.Value
-        <br />
-        <br />
-    </text>
+    <p>@message</p>
+}
+
+@code
+{
+    private ClaimsPrincipal? user { get; set; }
+    private string? message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateProvider
+            .GetAuthenticationStateAsync();
+        if (authState == null)
+            message = "authState is null";
+        else if (authState.User == null)
+            message = "User is null";
+        else
+            user = authState.User;
+    }
 }
