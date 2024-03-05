@@ -4,9 +4,10 @@ using System.Security.Claims;
 
 namespace bouvet_fagkaffe_frontend;
 
-public class UserHelper(Operations operations)
+public class UserHelper(Operations operations, IConfiguration configuration)
 {
     public Operations Operations { get; } = operations;
+    public IConfiguration Configuration { get; } = configuration;
 
     public async Task<User?> GetUser(ClaimsPrincipal? principal)
     {
@@ -20,7 +21,7 @@ public class UserHelper(Operations operations)
 
         //If user doesn't exist => Create
         //Else => Update
-        var user = await operations.GetUserByForeignId(foreignId);
+        var user = await Operations.GetUserByForeignId(foreignId);
         if (user == null)
         {
             var newUser = new User()
@@ -31,7 +32,9 @@ public class UserHelper(Operations operations)
                 Email = GetUserEmail(principal),
                 Groups = GetUserGroups(principal)
             };
-            //TODO: perform admin check
+            if (newUser.Groups.Contains("Admin"))
+                newUser.IsAdmin = true;
+
             user = await Operations.CreateUser(newUser);
         }
         else
@@ -41,6 +44,9 @@ public class UserHelper(Operations operations)
             user.LastName = GetUserLastName(principal);
             user.Email = GetUserEmail(principal);
             user.Groups = GetUserGroups(principal);
+            if (user.Groups.Contains("Admin"))
+                user.IsAdmin = true;
+
             user = await Operations.UpdateUser(user);
         }
         return user;
@@ -77,7 +83,11 @@ public class UserHelper(Operations operations)
         var groupClaims = principal.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").ToList();
         foreach (var groupClaim in groupClaims)
         {
-            groups.Add(groupClaim.Value);
+            var groupName = Configuration.GetValue<string>($"Groups:{groupClaim.Value}");
+            if (groupName != null)
+            {
+                groups.Add(groupName);
+            }
         }
         return groups;
     }
