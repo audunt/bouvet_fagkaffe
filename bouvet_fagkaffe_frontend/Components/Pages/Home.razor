@@ -1,7 +1,8 @@
 ﻿@using System.Security.Claims
 @using bouvet_fagkaffe_frontend.Components.Layout
 @inject UserHelper _userHelper
-@inject AuthenticationStateProvider authenticationStateProvider
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject IConfiguration _configuration
 @page "/"
 
 <PageTitle>Home</PageTitle>
@@ -20,11 +21,13 @@ Welcome to fagkaffe @user?.FullName()
         @foreach (var group in user.Groups)
         {
             <text>
-            Group: @group
+                Group: @group
             </text>
             <br />
         }
     }
+    <br />
+    isAdmin: @user?.IsAdmin
 </div>
 
 @code
@@ -36,7 +39,7 @@ Welcome to fagkaffe @user?.FullName()
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
     {
-        var authState = await authenticationStateProvider
+        var authState = await _authenticationStateProvider
                    .GetAuthenticationStateAsync();
         principal = authState.User;
         if (principal != null)
