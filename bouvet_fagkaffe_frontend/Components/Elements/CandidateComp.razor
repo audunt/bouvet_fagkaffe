@@ -1,0 +1,54 @@
+﻿@inject Operations _operations
+<div class="card">
+    <div class="card-header">@(candidate.Department ?? "Open to all")</div>
+    <div class="card-body">
+        <h5 class="card-title">@candidate.Topic</h5>
+        <p class="card-subtitle"><small>@candidate.Id</small></p>
+        <p class="card-text">Summary: @candidate.Summary</p>
+        <p class="card-text">
+            Registerred Presenters:
+            @foreach (var user in candidate.RegisteredPresenters)
+            {
+                @user.Email
+            }
+        </p>
+        <div>
+            @if(!candidate.RegisteredPresenters.Contains(user))
+            {
+                <button class="btn btn-primary" @onclick="() => AddPresenter()">Register as presenter</button>
+            }
+            else
+            {
+                <button class="btn btn-secondary" disabled>Register as presenter</button>
+            }
+            <button class="btn btn-primary" @onclick="() => AddVote()">Vote</button>
+        </div>
+    </div>
+    <div class="card-footer">Votes: @candidate.Votes</div>
+    @if (user.IsAdmin && isAdminView)
+    {
+        <button class="btn btn-primary">
+            Select presenter(s)
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public required Candidate candidate { get; set; }
+    [Parameter]
+    public required User user { get; set; }
+    [Parameter]
+    public bool isAdminView { get; set; } = false;
+
+    private async Task AddPresenter()
+    {
+        candidate.RegisteredPresenters.Add(user);
+        candidate = await _operations.UpdateCandidate(candidate);
+    }
+
+    private async Task AddVote(){
+        candidate.Votes += 1;
+        candidate = await _operations.UpdateCandidate(candidate);
+    }
+}

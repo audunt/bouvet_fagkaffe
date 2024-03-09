@@ -1,40 +1,85 @@
 ﻿@using System.Security.Claims
 @using bouvet_fagkaffe_frontend.Components.Layout
+@using bouvet_fagkaffe_frontend.Components.Elements
 @inject UserHelper _userHelper
 @inject AuthenticationStateProvider _authenticationStateProvider
-@inject IConfiguration _configuration
+@inject Operations _operations
+@rendermode InteractiveServer
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Bouvet Fagkaffe</h1>
 
-Welcome to fagkaffe @user?.FullName()
-<br />
-<div>
-    These are your claims: 
-    <br />
-    <br />
-    Email: @user?.Email <br />
-    @if (user?.Groups != null)
-    {
-        @foreach (var group in user.Groups)
-        {
-            <text>
-                Group: @group
-            </text>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            Welcome to fagkaffe @user?.FullName()
             <br />
-        }
-    }
-    <br />
-    isAdmin: @user?.IsAdmin
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <h3>My Lectures:</h3>
+            @if (lectures != null && lectures.Count() > 0)
+            {
+                @foreach (var lecture in lectures)
+                {
+                    @if(lecture.HeldBy.Contains(user!))
+                    {
+                         <LectureComp 
+                             lecture="@lecture">
+                         </LectureComp>
+                    }
+                }
+            }
+            else if (lectures != null && lectures.Count() == 0)
+            {
+                <p>There are currently no lectures to display</p>
+            }
+            else 
+            {
+                <p>Loading...</p>
+            }
+        </div>
+        <div class="col-6">
+            <h3>My Candidates</h3>
+            @if (candidates != null && candidates.Count() > 0)
+            {
+                @foreach (var candidate in candidates)
+                {
+                    @if(candidate.ProposedBy == user || candidate.RegisteredPresenters.Contains(user!))
+                    {
+                        <CandidateComp 
+                            candidate="@candidate"
+                            user="@user">
+                        </CandidateComp>
+                    }
+                }
+            }
+            else if (candidates != null && candidates.Count() == 0)
+            {
+                <p>There are currently no candidates to display</p>
+            }
+            else
+            {
+                <p>Loading...</p>
+            }
+        </div>
+    </div>
 </div>
+
 
 @code
 {
     //Define the variables to use
     private User? user { get; set; }
     private ClaimsPrincipal? principal { get; set; }
+
+    private List<Lecture>? lectures { get; set; }
+    private List<Candidate>? candidates { get; set; }
+
 
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
@@ -44,7 +89,12 @@ Welcome to fagkaffe @user?.FullName()
         principal = authState.User;
         if (principal != null)
             user = await _userHelper.GetUser(principal);
-
+        if (user != null)
+        {
+            lectures = await _operations.GetAllLecturesForUser(user);
+            candidates = await _operations.GetAllCandidatesForUser(user);
+        }
         await base.OnInitializedAsync();
     }
+
 }

@@ -8,8 +8,8 @@ public class Operations(FagkaffeContext context)
 {
     private readonly FagkaffeContext _context = context;
 
-    #region Get
-    public ValueTask<Candidate?> GetCandidates(Guid id)
+    #region Candidate
+    public ValueTask<Candidate?> GetCandidate(Guid id)
     {
         return _context.Candidates.FindAsync(id);
     }
@@ -19,11 +19,93 @@ public class Operations(FagkaffeContext context)
         return _context.Candidates.ToListAsync();
     }
 
-    public ValueTask<Lecture?> GetLectures(Guid id)
+    public Task<List<Candidate>> GetAllCandidatesByDepartments(List<string?> department)
+    {
+        return _context.Candidates.Where(c => 
+            c.Department != null &&
+            department.Contains(c.Department) &&
+            c.Status == CandidateStatus.Submitted)
+            .ToListAsync();
+    }
+
+    public Task<List<Candidate>> GetAllCandidatesNoDepartment()
+    {
+        return _context.Candidates.Where(c => 
+            c.Department == null &&
+            c.Status == CandidateStatus.Submitted)
+            .ToListAsync();
+    }
+
+    public Task<List<Candidate>> GetAllCandidatesForUser(User user)
+    {
+        return _context.Candidates.Where(c => 
+            user.Groups.Contains(c.Department))
+            .Include(u => u.RegisteredPresenters)
+            .ToListAsync();
+    }
+
+    public async Task<Candidate> CreateCandidate(Candidate candidate)
+    {
+        await _context.Candidates.AddAsync(candidate);
+        await _context.SaveChangesAsync();
+        return candidate;
+    }
+
+    public async Task<Candidate> UpdateCandidate(Candidate candidate)
+    {
+        var storedCandidate = await GetCandidate(candidate.Id);
+        if (storedCandidate != null)
+        {
+            storedCandidate = candidate;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new Exception("failed updating the candidate");
+        }
+        return storedCandidate;
+    }
+
+    #endregion
+
+    #region Lecture
+    public ValueTask<Lecture?> GetLecture(Guid id)
     {
         return _context.Lectures.FindAsync(id);
     }
 
+    public Task<List<Lecture>> GetAllLecturesForUser(User user)
+    {
+        return _context.Lectures.Where(l =>
+                user.Groups.Contains(l.Department))
+                .Include(u => u.HeldBy)
+                .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllLecturesByDepartments(List<string?> department)
+    {
+        return _context.Lectures.Where(l =>
+            l.Department != null && department.Contains(l.Department))
+            .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllLecturesNoDepartment()
+    {
+        return _context.Lectures.Where(l =>
+            l.Department == null)
+            .ToListAsync();
+    }
+
+    public async Task<Lecture> CreateLecture(Lecture lecture)
+    {
+        await _context.Lectures.AddAsync(lecture);
+        await _context.SaveChangesAsync();
+        return lecture;
+    }
+    #endregion
+
+
+    #region User
     public ValueTask<User?> GetUser(Guid id)
     {
         return  _context.Users.FindAsync(id);
@@ -34,9 +116,6 @@ public class Operations(FagkaffeContext context)
         return _context.Users.FirstOrDefaultAsync(u  => u.ForeignId == foreignId);
     }
 
-    #endregion
-
-    #region Set
 
     public async Task<User> CreateUser(User user)
     {
@@ -57,19 +136,5 @@ public class Operations(FagkaffeContext context)
             throw new Exception("failed updating the user");
         return storedUser;
     }
-
-    public async Task<Candidate> CreateCandidate(Candidate candidate)
-    {
-        await _context.Candidates.AddAsync(candidate);
-        await _context.SaveChangesAsync();
-        return candidate;
-    }
-
-    public async Task<Lecture> CreateLecture(Lecture lecture)
-    {
-        await _context.Lectures.AddAsync(lecture);
-        await _context.SaveChangesAsync();
-        return lecture;
-    } 
     #endregion
 }

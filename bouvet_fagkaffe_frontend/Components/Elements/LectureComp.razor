@@ -1,0 +1,27 @@
+﻿<div class="card">
+    <div class="card-header">@(lecture.Department ?? "Open to all")</div>
+    <div class="card-body">
+        <h5 class="card-title">@lecture.Title</h5>
+        <p class="card-subtitle"><small>@lecture.HeldAt</small></p>
+        <p class="card-text">Summary: @lecture.Summary</p>
+        <p class="card-text">
+            Registerred Presenters:
+            @foreach (var user in lecture.HeldBy)
+            {
+                @user.Email
+            }
+        </p>
+    </div>
+    <div class="card-footer">
+        Tags:
+        @foreach (var tag in lecture.Tags)
+        {
+            @tag
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required Lecture lecture { get; set; }
+}

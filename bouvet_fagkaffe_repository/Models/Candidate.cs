@@ -16,6 +16,7 @@ public class Candidate
     public int Votes { get; set; } = 0;
     public List<User> RegisteredPresenters { get; } = [];
     public Format Format { get; set; }
+    public string? Department { get; set; }
 }
 public enum CandidateType
 {
@@ -34,5 +35,6 @@ public enum CandidateStatus
 public enum Format
 {
     Online,
-    Physical
+    Physical,
+    Hybrid
 }
