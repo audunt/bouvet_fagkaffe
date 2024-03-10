@@ -1,0 +1,75 @@
+﻿@using bouvet_fagkaffe_frontend.Components.Elements
+@inject Operations _operations
+@inject UserHelper _userHelper
+@inject AuthenticationStateProvider authenticationStateProvider
+@rendermode InteractiveServer
+@page "/lectures"
+
+<h3>Lectures</h3>
+<br />
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <h5>All lectures in your department:</h5>
+            @if (departmentLectures != null && departmentLectures.Count() > 0)
+            {
+                @foreach (var lecture in departmentLectures)
+                {
+                    <LectureComp lecture=@lecture>
+
+                    </LectureComp>
+                }
+            }
+            else if (departmentLectures != null && departmentLectures.Count() == 0)
+            {
+                <p>There are no lectures to display</p>
+            }
+            else
+            {
+                <p>Loading...</p>
+            }
+        </div>
+        <div class="col-6">
+            <h5>All open lectures:</h5>
+            @if (openLectures != null && openLectures.Count() > 0)
+            {
+                @foreach (var lecture in openLectures)
+                {
+                    <LectureComp lecture=@lecture>
+
+                    </LectureComp>
+                }
+            }
+            else if (openLectures != null && openLectures.Count() == 0)
+            {
+                <p>There are no lectures to display</p>
+            }
+            else
+            {
+                <p>Loading...</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Lecture>? departmentLectures { get; set; }
+    private List<Lecture>? openLectures { get; set; }
+
+    private User? user { get; set; }
+    private ClaimsPrincipal? principal { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateProvider
+            .GetAuthenticationStateAsync();
+        principal = authState.User;
+        if (principal != null)
+            user = await _userHelper.GetUser(principal);
+        if (user != null)
+            departmentLectures = await _operations.GetAllLecturesForUser(user);
+            openLectures = await _operations.GetAllLecturesNoDepartment();
+
+        await base.OnInitializedAsync();
+    }
+}

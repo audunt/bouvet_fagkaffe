@@ -1,0 +1,131 @@
+﻿@using bouvet_fagkaffe_frontend.Components.Elements
+@inject UserHelper _userHelper
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject Operations _operations
+@rendermode InteractiveServer
+@page "/admin"
+<h3>Admin</h3>
+
+@if(user != null && user.IsAdmin)
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <h3>Ready Lectures:</h3>
+                @if (lectures != null && lectures.Count() > 0)
+                {
+                    @foreach (var lecture in lectures)
+                    {
+                        @if(lecture.Status == LectureStatus.Planned)
+                        {
+                           <LectureComp lecture="@lecture"></LectureComp>
+                        }
+                    }
+                }
+            else if (lectures != null && lectures.Count() == 0)
+            {
+                <p>There are currently no lectures to display</p>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            </div>
+            <div class="col-6">
+                <h3>Unplanned lectures</h3>
+                @if (lectures != null && lectures.Count() > 0)
+                {
+                    @foreach (var lecture in lectures)
+                    {
+                        @if (lecture.Status == LectureStatus.Accepted)
+                        {
+                            <LectureComp lecture="@lecture"></LectureComp>
+                        }
+                    }
+                }
+                else if (lectures != null && lectures.Count() == 0)
+                {
+                    <p>There are currently no lectures to display</p>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <h3>Candidates:</h3>
+                @if (candidates != null && candidates.Count() > 0)
+                {
+                    @foreach (var candidate in candidates)
+                    {
+                        @if (candidate.Status == CandidateStatus.Submitted)
+                        {
+                            <CandidateComp 
+                                candidate="@candidate"
+                                user="@user"
+                                isAdminView = "@isAdminView">
+                            </CandidateComp>
+                            <br />
+                        }
+                    }
+                }
+                else if (candidates != null && candidates.Count() == 0)
+                {
+                    <p>There are currently no candidates to display</p>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="col-6">
+                <h3>Placeholder for calendar</h3>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>Unauthorized</p>
+}
+
+@code {
+    //Define the variables to use
+    private User? user { get; set; }
+    private ClaimsPrincipal? principal { get; set; }
+
+    private List<Lecture>? lectures { get; set; }
+    private List<Candidate>? candidates { get; set; }
+
+    private bool isAdminView = true;
+
+    // override intitialization of the page
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider
+                   .GetAuthenticationStateAsync();
+        principal = authState.User;
+        if (principal != null)
+            user = await _userHelper.GetUser(principal);
+        if (user != null && user.Groups != null)
+        {
+            lectures = await _operations.GetAllLecturesByDepartments(user.Groups);
+            candidates = await _operations.GetAllCandidatesByDepartments(user.Groups);
+        }
+        await base.OnInitializedAsync();
+    }
+}

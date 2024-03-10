@@ -19,6 +19,7 @@ public class Lecture
     public LectureStatus Status { get; set; } = LectureStatus.Accepted;
     public List<MeetingLink>? MeetingLinks { get; } = [];
     public List<string> Tags { get; set; } = [];
+    public string? Department { get; set; }
 }
 
 public enum LectureStatus
