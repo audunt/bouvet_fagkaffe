@@ -1,7 +1,5 @@
 ﻿@using bouvet_fagkaffe_frontend.Components.Elements
 @inject Operations _operations
-@inject UserHelper _userHelper
-@inject AuthenticationStateProvider authenticationStateProvider
 @rendermode InteractiveServer
 @page "/candidates"
 
@@ -81,8 +79,8 @@
     [SupplyParameterFromForm]
     private Candidate? newCandidate { get; set; }
 
+    [CascadingParameter]
     private User? user { get; set; }
-    private ClaimsPrincipal? principal { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,11 +90,6 @@
                 Summary = ""
             };
 
-        var authState = await authenticationStateProvider
-            .GetAuthenticationStateAsync();
-        principal = authState.User;
-        if (principal != null)
-            user = await _userHelper.GetUser(principal);
         if(user != null)
             departmentCandidates = await _operations.GetAllCandidatesForUser(user);
 

@@ -1,8 +1,5 @@
 ﻿@using System.Security.Claims
-@using bouvet_fagkaffe_frontend.Components.Layout
 @using bouvet_fagkaffe_frontend.Components.Elements
-@inject UserHelper _userHelper
-@inject AuthenticationStateProvider _authenticationStateProvider
 @inject Operations _operations
 @rendermode InteractiveServer
 @page "/"
@@ -74,8 +71,8 @@
 @code
 {
     //Define the variables to use
-    private User? user { get; set; }
-    private ClaimsPrincipal? principal { get; set; }
+    [CascadingParameter]
+    protected User? user { get; set; }
 
     private List<Lecture>? lectures { get; set; }
     private List<Candidate>? candidates { get; set; }
@@ -84,11 +81,6 @@
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateProvider
-                   .GetAuthenticationStateAsync();
-        principal = authState.User;
-        if (principal != null)
-            user = await _userHelper.GetUser(principal);
         if (user != null)
         {
             lectures = await _operations.GetAllLecturesForUser(user);
