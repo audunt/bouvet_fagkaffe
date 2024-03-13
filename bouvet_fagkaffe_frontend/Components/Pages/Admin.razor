@@ -1,6 +1,4 @@
 ﻿@using bouvet_fagkaffe_frontend.Components.Elements
-@inject UserHelper _userHelper
-@inject AuthenticationStateProvider _authenticationStateProvider
 @inject Operations _operations
 @rendermode InteractiveServer
 @page "/admin"
@@ -104,9 +102,8 @@ else
 }
 
 @code {
-    //Define the variables to use
+    [CascadingParameter]
     private User? user { get; set; }
-    private ClaimsPrincipal? principal { get; set; }
 
     private List<Lecture>? lectures { get; set; }
     private List<Candidate>? candidates { get; set; }
@@ -116,11 +113,6 @@ else
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateProvider
-                   .GetAuthenticationStateAsync();
-        principal = authState.User;
-        if (principal != null)
-            user = await _userHelper.GetUser(principal);
         if (user != null && user.Groups != null)
         {
             lectures = await _operations.GetAllLecturesByDepartments(user.Groups);

@@ -1,6 +1,36 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-</Router>
+﻿@inject UserHelper _userHelper
+@inject AuthenticationStateProvider _authenticationStateProvider
+
+@rendermode InteractiveServer
+
+@if(user != null){
+    <CascadingValue Value="@user">
+        <Router AppAssembly="typeof(Program).Assembly">
+            <Found Context="routeData">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            </Found>
+        </Router>
+    </CascadingValue>
+}
+else
+{
+    <p>Loading..</p>
+}
+
+
+@code {
+    private User? user { get; set; }
+    private ClaimsPrincipal? principal { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider
+               .GetAuthenticationStateAsync();
+        principal = authState.User;
+        if (principal != null)
+            user = await _userHelper.GetUser(principal);
+
+        await base.OnInitializedAsync();
+    }
+}
