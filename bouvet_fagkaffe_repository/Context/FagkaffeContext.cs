@@ -29,6 +29,9 @@ public class FagkaffeContext : DbContext
 
             c.HasMany(c => c.RegisteredPresenters)
             .WithMany(u => u.RegisteredOnCandidates);
+
+            c.HasMany(c => c.VotedOnBy)
+            .WithMany(u => u.VotedOn);
         });
 
 

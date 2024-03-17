@@ -41,6 +41,7 @@ public class Operations(FagkaffeContext context)
         return _context.Candidates.Where(c => 
             user.Groups.Contains(c.Department) && c.Status == CandidateStatus.Submitted)
             .Include(u => u.RegisteredPresenters)
+            .Include(u => u.VotedOnBy)
             .ToListAsync();
     }
 

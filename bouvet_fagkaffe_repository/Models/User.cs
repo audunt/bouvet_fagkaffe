@@ -20,6 +20,7 @@ public class User
     public bool IsAdmin { get; set; } = false;
     public List<Candidate> RegisteredOnCandidates { get; } = [];
     public List<Lecture> PresentsLectures { get; } = [];
+    public List<Candidate> VotedOn {  get; } = [];
 
     public string FullName()
     {

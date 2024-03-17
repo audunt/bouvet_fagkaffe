@@ -20,6 +20,8 @@ public class Lecture
     public List<MeetingLink>? MeetingLinks { get; } = [];
     public List<string> Tags { get; set; } = [];
     public string? Department { get; set; }
+    public bool ApprovedByPresenter { get; set; } = false;
+    public bool ApprovedByAdmin { get; set; } = false;
 }
 
 public enum LectureStatus

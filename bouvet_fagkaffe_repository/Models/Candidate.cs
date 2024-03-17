@@ -13,10 +13,10 @@ public class Candidate
     public User? ProposedBy { get; set; }
     public CandidateType Type { get; set; }
     public CandidateStatus Status { get; set; } = CandidateStatus.Submitted;
-    public int Votes { get; set; } = 0;
     public List<User> RegisteredPresenters { get; } = [];
     public Format Format { get; set; }
     public string? Department { get; set; }
+    public List<User> VotedOnBy { get; } = [];
 }
 public enum CandidateType
 {
