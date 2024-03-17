@@ -26,7 +26,9 @@
                     @if(lecture.HeldBy.Contains(user!))
                     {
                          <LectureComp 
-                             lecture="@lecture">
+                             lecture="@lecture"
+                             isAdminOrHomeView="@isHomeView"
+                             user="@user">
                          </LectureComp>
                     }
                 }
@@ -76,6 +78,7 @@
 
     private List<Lecture>? lectures { get; set; }
     private List<Candidate>? candidates { get; set; }
+    private bool isHomeView { get; set; } = true;
 
 
     // override intitialization of the page

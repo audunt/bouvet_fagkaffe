@@ -1,37 +1,71 @@
 ﻿@inject Operations _operations
-<div class="card">
-    <div class="card-header">@(candidate.Department ?? "Open to all")</div>
-    <div class="card-body">
-        <h5 class="card-title">@candidate.Topic</h5>
-        <p class="card-subtitle"><small>@candidate.Id</small></p>
-        <p class="card-text">Summary: @candidate.Summary</p>
-        <p class="card-text">
-            Registerred Presenters:
-            @foreach (var user in candidate.RegisteredPresenters)
+@inject LectureHelper _lectureHelper
+
+@if(!isConvertedToLecture){
+    <div class="card">
+        <div class="card-header">@(candidate.Department ?? "Open to all")</div>
+        <div class="card-body">
+            <h5 class="card-title">@candidate.Topic</h5>
+            <p class="card-subtitle"><small>@candidate.Id</small></p>
+            <p class="card-text">Summary: @candidate.Summary</p>
+            <p class="card-text">
+                Registerred Presenters:
+                @foreach (var user in candidate.RegisteredPresenters)
+                {
+                    @user.Email
+                }
+            </p>
+            <div>
+                @if (!isAdminView)
+                {
+                    @if(!candidate.RegisteredPresenters.Contains(user))
+                    {
+                        <button class="btn btn-primary" @onclick="() => AddPresenter()">Register as presenter</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" disabled>Register as presenter</button>
+                    }
+                    <button class="btn btn-primary" @onclick="() => AddVote()">Vote</button>
+                }
+            </div>
+        </div>
+        <div class="card-footer">Votes: @candidate.Votes</div>
+        @if (user.IsAdmin && isAdminView)
+        {
+            @foreach(var presenter in candidate.RegisteredPresenters)
             {
-                @user.Email
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="@presenter.Email" @onchange="eventArgs => { CheckBoxClicked(presenter, eventArgs.Value!); }" />
+                    <label class="form-check-label" for="@presenter.Email">@presenter.Email</label>
+                </div>
             }
-        </p>
-        <div>
-            @if(!candidate.RegisteredPresenters.Contains(user))
-            {
-                <button class="btn btn-primary" @onclick="() => AddPresenter()">Register as presenter</button>
-            }
-            else
-            {
-                <button class="btn btn-secondary" disabled>Register as presenter</button>
-            }
-            <button class="btn btn-primary" @onclick="() => AddVote()">Vote</button>
+            <button class="btn btn-primary" @onclick="ConfirmPresenters">
+                Confirm presenter(s)
+            </button>
+        }
+    </div>
+}
+else if (isConvertedToLecture)
+{
+    <div class="card">
+        <div class="card-header">
+            <div class="card-body">
+                <p>Converted to lecture</p>
+            </div>
         </div>
     </div>
-    <div class="card-footer">Votes: @candidate.Votes</div>
-    @if (user.IsAdmin && isAdminView)
-    {
-        <button class="btn btn-primary">
-            Select presenter(s)
-        </button>
-    }
-</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            <div class="card-body">
+                <p>Something went wrong :(</p>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -40,6 +74,9 @@
     public required User user { get; set; }
     [Parameter]
     public bool isAdminView { get; set; } = false;
+
+    private List<User> presenters { get; set; } = [];
+    private bool isConvertedToLecture = false;
 
     private async Task AddPresenter()
     {
@@ -50,5 +87,19 @@
     private async Task AddVote(){
         candidate.Votes += 1;
         candidate = await _operations.UpdateCandidate(candidate);
+    }
+
+    private void CheckBoxClicked(User presenter, object status)
+    {
+        if ((bool)status)
+            presenters.Add(presenter);
+        else
+            presenters.Remove(presenter);
+    }
+
+    private async Task ConfirmPresenters()
+    {
+        isConvertedToLecture = true;
+        await _lectureHelper.ConvertToLecture(candidate, presenters);
     }
 }

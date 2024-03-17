@@ -61,8 +61,8 @@
     protected override async Task OnInitializedAsync()
     {
         if (user != null)
-            departmentLectures = await _operations.GetAllLecturesForUser(user);
-            openLectures = await _operations.GetAllLecturesNoDepartment();
+            departmentLectures = await _operations.GetAllDisplayLecturesForUser(user);
+            openLectures = await _operations.GetAllDisplayLecturesNoDepartment();
 
         await base.OnInitializedAsync();
     }

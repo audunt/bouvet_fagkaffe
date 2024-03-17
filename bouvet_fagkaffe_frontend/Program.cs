@@ -59,6 +59,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<UserHelper>();
+builder.Services.AddScoped<LectureHelper>();
 builder.Services.AddScoped<Operations>();
 
 var app = builder.Build();

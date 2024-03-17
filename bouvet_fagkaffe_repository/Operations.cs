@@ -39,7 +39,7 @@ public class Operations(FagkaffeContext context)
     public Task<List<Candidate>> GetAllCandidatesForUser(User user)
     {
         return _context.Candidates.Where(c => 
-            user.Groups.Contains(c.Department))
+            user.Groups.Contains(c.Department) && c.Status == CandidateStatus.Submitted)
             .Include(u => u.RegisteredPresenters)
             .ToListAsync();
     }
@@ -96,14 +96,65 @@ public class Operations(FagkaffeContext context)
             .ToListAsync();
     }
 
+    public Task<List<Lecture>> GetAllDisplayLecturesForUser(User user)
+    {
+        return _context.Lectures.Where(l =>
+                user.Groups.Contains(l.Department) && l.Status == LectureStatus.Planned)
+                .Include(u => u.HeldBy)
+                .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllDisplayLecturesByDepartments(List<string?> department)
+    {
+        return _context.Lectures.Where(l =>
+            l.Department != null && department.Contains(l.Department) && l.Status == LectureStatus.Planned)
+            .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllDisplayLecturesNoDepartment()
+    {
+        return _context.Lectures.Where(l =>
+            l.Department == null && l.Status == LectureStatus.Planned)
+            .ToListAsync();
+    }
+
     public async Task<Lecture> CreateLecture(Lecture lecture)
     {
         await _context.Lectures.AddAsync(lecture);
         await _context.SaveChangesAsync();
         return lecture;
     }
-    #endregion
 
+    public async Task<Lecture> CreateLectureFromCandidate(Lecture lecture, Guid candidateId)
+    {
+        var candidate = await GetCandidate(candidateId);
+        if (candidate == null)
+            throw new Exception("Unable to find existing candidate");
+
+        candidate.Status = CandidateStatus.Accepted;
+        await UpdateCandidate(candidate);
+        await _context.Lectures.AddAsync(lecture);
+        await _context.SaveChangesAsync();
+
+        return lecture;
+    }
+
+    public async Task<Lecture> UpdateLecture(Lecture lecture)
+    {
+        var storedLecture = await GetLecture(lecture.Id);
+        if (storedLecture != null)
+        {
+            storedLecture = lecture;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new Exception("Failed to update lecture");
+        }
+        return storedLecture;
+
+    }
+    #endregion
 
     #region User
     public ValueTask<User?> GetUser(Guid id)
