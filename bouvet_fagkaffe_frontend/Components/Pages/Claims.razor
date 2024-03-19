@@ -7,7 +7,7 @@
 <PageTitle>Claims</PageTitle>
 
 Welcome to fagkaffe @userObject?.FullName()
-<h1>Claims from user object:</h1>
+<h1>Claims from user object</h1>
 <br />
 <div>
     Email: @userObject?.Email <br />
@@ -26,7 +26,7 @@ Welcome to fagkaffe @userObject?.FullName()
 </div>
 <br />
 <br />
-<h1>Claims from principal:</h1>
+<h1>Claims from principal</h1>
 
 @if(user != null){
     @foreach (var claim in user?.Claims ?? [])
