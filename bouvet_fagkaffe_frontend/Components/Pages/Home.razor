@@ -23,7 +23,7 @@
             {
                 @foreach (var lecture in lectures)
                 {
-                    @if(lecture.HeldBy.Contains(user!))
+                    @if(lecture.HeldBy.Contains(user!) && lecture.Status != LectureStatus.Cancelled)
                     {
                          <LectureComp 
                              lecture="@lecture"

@@ -16,6 +16,7 @@ public class Lecture
     public List<User> HeldBy { get; } = [];
     [DataType(DataType.Date)]
     public DateTimeOffset? HeldAt { get; set; }
+    public string? Location { get; set; }
     public LectureStatus Status { get; set; } = LectureStatus.Accepted;
     public List<MeetingLink>? MeetingLinks { get; } = [];
     public List<string> Tags { get; set; } = [];

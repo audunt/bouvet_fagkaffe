@@ -102,6 +102,7 @@ public class Operations(FagkaffeContext context)
         return _context.Lectures.Where(l =>
                 user.Groups.Contains(l.Department) && l.Status == LectureStatus.Planned)
                 .Include(u => u.HeldBy)
+                .OrderBy(l => l.HeldAt)
                 .ToListAsync();
     }
 
@@ -109,6 +110,7 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department != null && department.Contains(l.Department) && l.Status == LectureStatus.Planned)
+            .OrderBy(l => l.HeldAt)
             .ToListAsync();
     }
 
