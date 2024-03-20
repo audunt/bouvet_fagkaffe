@@ -50,6 +50,10 @@
                             </div>
                     </EditForm>
                     }
+                    else if(lecture.Status == LectureStatus.Cancelled)
+                    {
+                        <p>Lecture has been cancelled</p>
+                    }
                     else
                     {
                         <p>Wait for approval</p>
@@ -73,6 +77,17 @@
                     </div>
                     <div class="form-group">
                         <button class="btn btn-primary" type="submit">Add Link</button>
+                    </div>
+                </EditForm>
+                <EditForm Model="@editTag" OnValidSubmit=@(AddTag) FormName="editMeetingLink">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="description">Tag:</label>
+                        <InputText class="form-control" @bind-Value="editTag" />
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Add Tag</button>
                     </div>
                 </EditForm>
             }
@@ -130,7 +145,7 @@ else
                         @foreach(var link in lecture.MeetingLinks)
                         {
                             <tr>
-                                <td><a href="@link.Link">@link.Description</a></td>
+                                <td><a href="@link.Link" target="_blank">@link.Description</a></td>
                                 @if(isAdminOrHomeView)
                                 {
                                     <td><button class="btn btn-danger btn-sm" @onclick="@(() => RemoveMeetingLink(link))">Remove</button></td>
@@ -151,7 +166,7 @@ else
             {
                 @foreach (var tag in lecture.Tags)
                 {
-                    @tag
+                    @($"{tag.Value} ")
                 }
             }
         </div>
@@ -170,6 +185,8 @@ else
     public required Lecture editLecture { get; set; }
     [SupplyParameterFromForm]
     public required MeetingLink editMeetingLink { get; set; }
+    [SupplyParameterFromForm]
+    public required string editTag { get; set; } = "";
 
 
     private bool editMode { get; set; } = false;
@@ -219,6 +236,13 @@ else
     {
         lecture.MeetingLinks.Remove(link);
         lecture = await _operations.UpdateLecture(lecture);
+    }
+
+    public async Task AddTag()
+    {
+        lecture = await _operations.AddTagToLecture(editTag, lecture.Id);
+        editTag = "";
+        StateHasChanged();
     }
 
     public async Task CancelLecture()
