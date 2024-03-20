@@ -52,7 +52,11 @@
                     }
                     else if(lecture.Status == LectureStatus.Cancelled)
                     {
-                        <p>Lecture has been cancelled</p>
+                    <p>Lecture has been cancelled</p>
+                    }
+                    else if (lecture.Status == LectureStatus.Completed)
+                    {
+                        <p>Lecture is completed</p>
                     }
                     else
                     {
@@ -93,7 +97,10 @@
             }
         </div>
         <div class="card-footer">
-
+            @if (lecture.Status == LectureStatus.Planned && lecture.HeldAt != null && IsOverdue())
+            {
+                <button class="btn btn-success" @onclick="MarkAsComplete">Mark as complete</button>
+            }
         </div>
     </div>
 }
@@ -259,5 +266,25 @@ else
         lecture.ApprovedByPresenter = false;
         lecture = await _operations.UpdateLecture(lecture);
         StateHasChanged();
+    }
+
+    public async Task MarkAsComplete()
+    {
+        lecture.Status = LectureStatus.Completed;
+        lecture = await _operations.UpdateLecture(lecture);
+        StateHasChanged();
+    }
+
+    public bool IsOverdue()
+    {
+        DateTimeOffset time;
+        if (lecture.HeldAt != null)
+        {
+            time = lecture.HeldAt.Value;
+            var compare = DateTimeOffset.Compare(time, DateTimeOffset.Now);
+            if (compare < 0)
+                return true;
+        }
+        return false;
     }
 }
