@@ -10,7 +10,7 @@
         <div class="card-body">
             @if(lecture.Status != LectureStatus.Planned)
             {
-                    @if(!lecture.ApprovedByPresenter)
+                    @if(!lecture.ApprovedByPresenter && lecture.HeldBy.Contains(user!))
                     {
                         <EditForm Model="@editLecture" OnValidSubmit=@(() => Submit("presenter")) FormName="editLecture">
                             <DataAnnotationsValidator />
@@ -32,7 +32,7 @@
                             </div>
                         </EditForm>
                     }
-                    else if(lecture.ApprovedByPresenter && !lecture.ApprovedByAdmin)
+                    else if(lecture.ApprovedByPresenter && !lecture.ApprovedByAdmin && user!.IsAdmin)
                     {
                         <EditForm Model="@editLecture" OnValidSubmit=@(() => Submit("admin")) FormName="editLecture">
                             <DataAnnotationsValidator />
@@ -48,7 +48,11 @@
                             <div class="form-group">
                                 <button class="btn btn-primary" type="submit">Confirm as planned</button>
                             </div>
-                        </EditForm>
+                    </EditForm>
+                    }
+                    else
+                    {
+                        <p>Wait for approval</p>
                     }
             }
             else
@@ -56,6 +60,21 @@
                 <button class="btn btn-danger" @onclick="CancelLecture">Cancel lecture</button>
                 <button class="btn btn-warning" @onclick="RevertToPlanning">Revert to planning</button>
 
+                <EditForm Model="@editMeetingLink" OnValidSubmit=@(AddMeetingLink) FormName="editMeetingLink">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <InputText class="form-control" @bind-Value="editMeetingLink.Description" />
+                    </div>
+                    <div class="form-group">
+                        <label for="link">Link:</label>
+                        <InputText class="form-control" @bind-Value="editMeetingLink.Link" />
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Add Link</button>
+                    </div>
+                </EditForm>
             }
         </div>
         <div class="card-footer">
@@ -99,6 +118,28 @@ else
                     @($"{user.FullName()} ")
                 }
             </p>
+            @if(lecture.MeetingLinks.Count() > 0)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" scope="col">MeetingLink(s):</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var link in lecture.MeetingLinks)
+                        {
+                            <tr>
+                                <td><a href="@link.Link">@link.Description</a></td>
+                                @if(isAdminOrHomeView)
+                                {
+                                    <td><button class="btn btn-danger btn-sm" @onclick="@(() => RemoveMeetingLink(link))">Remove</button></td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
         <div class="card-footer">
             Tags:
@@ -127,6 +168,8 @@ else
 
     [SupplyParameterFromForm]
     public required Lecture editLecture { get; set; }
+    [SupplyParameterFromForm]
+    public required MeetingLink editMeetingLink { get; set; }
 
 
     private bool editMode { get; set; } = false;
@@ -138,6 +181,11 @@ else
         else
             editMode = true;
         editLecture = lecture;
+        editMeetingLink = new()
+            {
+                Description = "",
+                Link = ""
+            };
     }
 
     public async Task Submit(string role)
@@ -153,6 +201,24 @@ else
         lecture = await _operations.UpdateLecture(editLecture);
         editMode = false;
         StateHasChanged();
+    }
+
+    public async Task AddMeetingLink()
+    {
+        if (!(string.IsNullOrWhiteSpace(editMeetingLink.Description) && string.IsNullOrWhiteSpace(editMeetingLink.Link)))
+        {
+            editLecture.MeetingLinks.Add(editMeetingLink);
+            lecture = await _operations.UpdateLecture(editLecture);
+            editMeetingLink.Description = "";
+            editMeetingLink.Link = "";
+            StateHasChanged();
+        }
+    }
+
+    public async Task RemoveMeetingLink(MeetingLink link)
+    {
+        lecture.MeetingLinks.Remove(link);
+        lecture = await _operations.UpdateLecture(lecture);
     }
 
     public async Task CancelLecture()

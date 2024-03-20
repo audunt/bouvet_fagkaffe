@@ -80,6 +80,7 @@ public class Operations(FagkaffeContext context)
         return _context.Lectures.Where(l =>
                 user.Groups.Contains(l.Department))
                 .Include(u => u.HeldBy)
+                .Include(m => m.MeetingLinks)
                 .ToListAsync();
     }
 
@@ -87,6 +88,8 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department != null && department.Contains(l.Department))
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
             .ToListAsync();
     }
 
@@ -94,6 +97,8 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department == null)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
             .ToListAsync();
     }
 
@@ -102,6 +107,7 @@ public class Operations(FagkaffeContext context)
         return _context.Lectures.Where(l =>
                 user.Groups.Contains(l.Department) && l.Status == LectureStatus.Planned)
                 .Include(u => u.HeldBy)
+                .Include(m => m.MeetingLinks)
                 .OrderBy(l => l.HeldAt)
                 .ToListAsync();
     }
@@ -110,6 +116,8 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department != null && department.Contains(l.Department) && l.Status == LectureStatus.Planned)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
             .OrderBy(l => l.HeldAt)
             .ToListAsync();
     }
@@ -118,6 +126,8 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department == null && l.Status == LectureStatus.Planned)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
             .ToListAsync();
     }
 
