@@ -8,67 +8,80 @@
 <div class="container">
     <div class="row">
         <div class="col-3">
-            <EditForm Model=@newCandidate OnValidSubmit="Submit" FormName="Candidate">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <div class="form-group">
-                    <label for="topic">Topic:</label>
-                    <InputText class="form-control" @bind-Value="newCandidate!.Topic" />
-                </div>
-                <div class="form-group">
-                    <label>Summary:</label> 
-                    <InputTextArea class="form-control" @bind-Value="newCandidate.Summary" />
-                </div>
-                <div class="form-group">
-                    <label>Type:</label>
-                    <InputSelect class="form-control" @bind-Value="newCandidate.Type">
-                        <option value="@CandidateType.Request">Request</option>
-                        <option value="@CandidateType.Proposal">Proposal</option>
-                    </InputSelect>
-                </div>
-                <div class="form-group">
-                    <label>Format:</label>
-                    <InputSelect class="form-control" @bind-Value="newCandidate.Format">
-                        <option value="@Format.Online">Online</option>
-                        <option value="@Format.Physical">Physical</option>
-                        <option value="@Format.Hybrid">Hybrid</option>
-                    </InputSelect>
-                </div>
-                @if (user != null)
-                {
-                    <div class="form-group">
-                        <label>Department:</label>
-                        <InputSelect class="form-control" @bind-Value="newCandidate.Department">
-                            <option value="">Open to all</option>
-                            @foreach(var department in user.Groups)
-                            {
-                                <option value="@department">@department</option>
-                            }
-                        </InputSelect>
+            <div class="position-fixed">
+                <div class="card">
+                    <div class="card-header">
+                        <p>Suggest candidate</p>
                     </div>
-                }
-                <div class="form-group">
-                    <button class="btn btn-primary" type="submit">Submit</button>
+                    <div class="card-body">
+                        <EditForm Model=@newCandidate OnValidSubmit="Submit" FormName="Candidate">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="form-group">
+                                <label for="topic">Topic:</label>
+                                <InputText class="form-control" @bind-Value="newCandidate!.Topic" />
+                            </div>
+                            <div class="form-group">
+                                <label>Summary:</label> 
+                                <InputTextArea class="form-control" @bind-Value="newCandidate.Summary" />
+                            </div>
+                            <div class="form-group">
+                                <label>Type:</label>
+                                <InputSelect class="form-control" @bind-Value="newCandidate.Type">
+                                    <option value="@CandidateType.Request">Request</option>
+                                    <option value="@CandidateType.Proposal">Proposal</option>
+                                </InputSelect>
+                            </div>
+                            <div class="form-group">
+                                <label>Format:</label>
+                                <InputSelect class="form-control" @bind-Value="newCandidate.Format">
+                                    <option value="@Format.Online">Online</option>
+                                    <option value="@Format.Physical">Physical</option>
+                                    <option value="@Format.Hybrid">Hybrid</option>
+                                </InputSelect>
+                            </div>
+                            @if (user != null)
+                            {
+                                <div class="form-group">
+                                    <label>Department:</label>
+                                    <InputSelect class="form-control" @bind-Value="newCandidate.Department">
+                                        <option value="">Open to all</option>
+                                        @foreach(var department in user.Groups)
+                                        {
+                                            <option value="@department">@department</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">Submit</button>
+                            </div>
+                        </EditForm>
+                    </div>
                 </div>
-            </EditForm>
+            </div>
         </div>
 
         <div class="col-9">
-            @if (departmentCandidates != null)
-            {
-                <h5>All relevant candidates:</h5>
-                @foreach (var candidate in departmentCandidates)
-                {
-                    <CandidateComp 
-                        candidate="@candidate"
-                        user = "@user">
-                    </CandidateComp>
-                }
-            }
-            else
-            {
-                <p>Loading...</p>
-            }
+            <div class="container">
+                <div class="row row-cols-2">
+                    @if (departmentCandidates != null)
+                    {
+                        @foreach (var candidate in departmentCandidates)
+                        {
+                            <div class="col">
+                                <CandidateComp candidate="@candidate"
+                                               user="@user">
+                                </CandidateComp>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>Loading...</p>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>

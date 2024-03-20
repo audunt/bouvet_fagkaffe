@@ -2,99 +2,119 @@
 @inject Operations _operations
 @rendermode InteractiveServer
 @page "/admin"
-<h3>Admin</h3>
 
 @if(user != null && user.IsAdmin)
 {
-    <div class="container">
-        <div class="row">
-            <div class="col-6">
-                <h3>Ready Lectures:</h3>
-                @if (lectures != null && lectures.Count() > 0)
-                {
-                    @foreach (var lecture in lectures)
-                    {
-                        @if(lecture.Status == LectureStatus.Planned)
-                        {
-                           <LectureComp lecture="@lecture"></LectureComp>
-                        }
-                    }
-                }
-            else if (lectures != null && lectures.Count() == 0)
-            {
-                <p>There are currently no lectures to display</p>
-            }
-            else
-            {
-                <div class="d-flex justify-content-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+    <h3>@view <button class="btn btn-outline-primary" @onclick="ToggleView">Toggle view</button></h3>
+    @if(view == "Candidates")
+    {
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+
                 </div>
-            }
-            </div>
-            <div class="col-6">
-                <h3>Unplanned lectures</h3>
-                @if (lectures != null && lectures.Count() > 0)
-                {
-                    @foreach (var lecture in lectures)
+                <div class="col-6">
+                    <h3>Candidates</h3>
+                    @if (candidates != null && candidates.Count() > 0)
                     {
-                        @if (lecture.Status == LectureStatus.Accepted)
+                        @foreach (var candidate in candidates)
                         {
-                            <LectureComp lecture="@lecture"></LectureComp>
+                            @if (candidate.Status == CandidateStatus.Submitted)
+                            {
+                                <CandidateComp candidate="@candidate"
+                                               user="@user"
+                                               isAdminView="@isAdminView">
+                                </CandidateComp>
+                                <br />
+                            }
                         }
                     }
-                }
-                else if (lectures != null && lectures.Count() == 0)
-                {
-                    <p>There are currently no lectures to display</p>
-                }
-                else
-                {
-                    <div class="d-flex justify-content-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                    else if (candidates != null && candidates.Count() == 0)
+                    {
+                        <p>There are currently no candidates to display</p>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-6">
-                <h3>Candidates:</h3>
-                @if (candidates != null && candidates.Count() > 0)
-                {
-                    @foreach (var candidate in candidates)
+    }
+    else
+    {
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Upcoming Lectures</h3>
+                    @if (lectures != null && lectures.Count() > 0)
                     {
-                        @if (candidate.Status == CandidateStatus.Submitted)
+                        @foreach (var lecture in lectures)
                         {
-                            <CandidateComp 
-                                candidate="@candidate"
-                                user="@user"
-                                isAdminView = "@isAdminView">
-                            </CandidateComp>
-                            <br />
+                            @if (lecture.Status == LectureStatus.Planned)
+                            {
+                                <LectureComp 
+                                    lecture="@lecture"
+                                    isAdminOrHomeView = "@isAdminView"
+                                    user = "@user">
+                                </LectureComp>
+                            }
                         }
                     }
-                }
-                else if (candidates != null && candidates.Count() == 0)
-                {
-                    <p>There are currently no candidates to display</p>
-                }
-                else
-                {
-                    <div class="d-flex justify-content-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                    else if (lectures != null && lectures.Count() == 0)
+                    {
+                        <p>There are currently no lectures to display</p>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
+                <div class="col-6">
+                    <h3>Unplanned lectures</h3>
+                    @if (lectures != null && lectures.Count() > 0)
+                    {
+                        @foreach (var lecture in lectures)
+                        {
+                            @if (lecture.Status == LectureStatus.Accepted)
+                            {
+                                <LectureComp 
+                                    lecture="@lecture"
+                                    isAdminOrHomeView="@isAdminView"
+                                    user="@user">
+                                </LectureComp>
+                            }
+                        }
+                    }
+                    else if (lectures != null && lectures.Count() == 0)
+                    {
+                        <p>There are currently no lectures to display</p>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
-            <div class="col-6">
-                <h3>Placeholder for calendar</h3>
+            <div class="row">
+                <div class="col-12">
+                    <h3>Placeholder for calendar</h3>
+                </div>
             </div>
         </div>
-    </div>
+    }
 }
 else
 {
@@ -109,6 +129,7 @@ else
     private List<Candidate>? candidates { get; set; }
 
     private bool isAdminView = true;
+    private string view = "Candidates";
 
     // override intitialization of the page
     protected override async Task OnInitializedAsync()
@@ -119,5 +140,14 @@ else
             candidates = await _operations.GetAllCandidatesByDepartments(user.Groups);
         }
         await base.OnInitializedAsync();
+    }
+
+    private void ToggleView()
+    {
+        if (view == "Candidates")
+            view = "Lectures";
+        else
+            view = "Candidates";
+        StateHasChanged();
     }
 }

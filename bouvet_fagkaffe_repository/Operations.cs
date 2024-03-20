@@ -39,8 +39,9 @@ public class Operations(FagkaffeContext context)
     public Task<List<Candidate>> GetAllCandidatesForUser(User user)
     {
         return _context.Candidates.Where(c => 
-            user.Groups.Contains(c.Department))
+            user.Groups.Contains(c.Department) && c.Status == CandidateStatus.Submitted)
             .Include(u => u.RegisteredPresenters)
+            .Include(u => u.VotedOnBy)
             .ToListAsync();
     }
 
@@ -79,6 +80,8 @@ public class Operations(FagkaffeContext context)
         return _context.Lectures.Where(l =>
                 user.Groups.Contains(l.Department))
                 .Include(u => u.HeldBy)
+                .Include(m => m.MeetingLinks)
+                .Include(t => t.Tags)
                 .ToListAsync();
     }
 
@@ -86,6 +89,9 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department != null && department.Contains(l.Department))
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
+            .Include(t => t.Tags)
             .ToListAsync();
     }
 
@@ -93,6 +99,41 @@ public class Operations(FagkaffeContext context)
     {
         return _context.Lectures.Where(l =>
             l.Department == null)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
+            .Include(t => t.Tags)
+            .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllDisplayLecturesForUser(User user)
+    {
+        return _context.Lectures.Where(l =>
+                user.Groups.Contains(l.Department) && l.Status == LectureStatus.Planned)
+                .Include(u => u.HeldBy)
+                .Include(m => m.MeetingLinks)
+                .Include(t => t.Tags)
+                .OrderBy(l => l.HeldAt)
+                .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllDisplayLecturesByDepartments(List<string?> department)
+    {
+        return _context.Lectures.Where(l =>
+            l.Department != null && department.Contains(l.Department) && l.Status == LectureStatus.Planned)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
+            .Include(t => t.Tags)
+            .OrderBy(l => l.HeldAt)
+            .ToListAsync();
+    }
+
+    public Task<List<Lecture>> GetAllDisplayLecturesNoDepartment()
+    {
+        return _context.Lectures.Where(l =>
+            l.Department == null && l.Status == LectureStatus.Planned)
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
+            .Include(t => t.Tags)
             .ToListAsync();
     }
 
@@ -102,8 +143,37 @@ public class Operations(FagkaffeContext context)
         await _context.SaveChangesAsync();
         return lecture;
     }
-    #endregion
 
+    public async Task<Lecture> CreateLectureFromCandidate(Lecture lecture, Guid candidateId)
+    {
+        var candidate = await GetCandidate(candidateId);
+        if (candidate == null)
+            throw new Exception("Unable to find existing candidate");
+
+        candidate.Status = CandidateStatus.Accepted;
+        await UpdateCandidate(candidate);
+        await _context.Lectures.AddAsync(lecture);
+        await _context.SaveChangesAsync();
+
+        return lecture;
+    }
+
+    public async Task<Lecture> UpdateLecture(Lecture lecture)
+    {
+        var storedLecture = await GetLecture(lecture.Id);
+        if (storedLecture != null)
+        {
+            storedLecture = lecture;
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new Exception("Failed to update lecture");
+        }
+        return storedLecture;
+
+    }
+    #endregion
 
     #region User
     public ValueTask<User?> GetUser(Guid id)
@@ -136,5 +206,38 @@ public class Operations(FagkaffeContext context)
             throw new Exception("failed updating the user");
         return storedUser;
     }
+    #endregion
+
+    #region Tags
+    public async Task<Tag> GetTag(string value)
+    {
+        value = value.Trim().ToLower();
+        var tag =  await _context.Tags.FirstOrDefaultAsync(t => t.Value == value);
+        if (tag != null)
+            return tag;
+        else
+        {
+            tag = new Tag() { Value = value };
+            await _context.AddAsync(tag);
+            await _context.SaveChangesAsync();
+            return tag;
+        }
+    }
+
+    public async Task<Lecture> AddTagToLecture(string value, Guid lectureId)
+    {
+        var tag = await GetTag(value);
+        var lecture = await GetLecture(lectureId);
+        if (lecture != null)
+        {
+            lecture.Tags.Add(tag);
+            lecture = await UpdateLecture(lecture);
+            return lecture;
+        }
+        else
+            throw new Exception("Couldnt add the tag to lecture");
+    }
+
+
     #endregion
 }

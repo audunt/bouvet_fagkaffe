@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bouvet_fagkaffe_repository.Context;
 
@@ -11,9 +12,11 @@ using bouvet_fagkaffe_repository.Context;
 namespace bouvet_fagkaffe_repository.Migrations
 {
     [DbContext(typeof(FagkaffeContext))]
-    partial class FagkaffeContextModelSnapshot : ModelSnapshot
+    [Migration("20240317130159_VoteFixAndLectureBools")]
+    partial class VoteFixAndLectureBools
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,21 +53,6 @@ namespace bouvet_fagkaffe_repository.Migrations
                     b.HasIndex("VotedOnId");
 
                     b.ToTable("CandidateUser1");
-                });
-
-            modelBuilder.Entity("LectureTag", b =>
-                {
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UsedOnId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("TagsId", "UsedOnId");
-
-                    b.HasIndex("UsedOnId");
-
-                    b.ToTable("LectureTag");
                 });
 
             modelBuilder.Entity("LectureUser", b =>
@@ -139,14 +127,15 @@ namespace bouvet_fagkaffe_repository.Migrations
                     b.Property<DateTimeOffset?>("HeldAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tags")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -161,21 +150,6 @@ namespace bouvet_fagkaffe_repository.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Lectures");
-                });
-
-            modelBuilder.Entity("bouvet_fagkaffe_repository.Models.Tag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("bouvet_fagkaffe_repository.Models.User", b =>
@@ -238,21 +212,6 @@ namespace bouvet_fagkaffe_repository.Migrations
                     b.HasOne("bouvet_fagkaffe_repository.Models.Candidate", null)
                         .WithMany()
                         .HasForeignKey("VotedOnId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LectureTag", b =>
-                {
-                    b.HasOne("bouvet_fagkaffe_repository.Models.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("bouvet_fagkaffe_repository.Models.Lecture", null)
-                        .WithMany()
-                        .HasForeignKey("UsedOnId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

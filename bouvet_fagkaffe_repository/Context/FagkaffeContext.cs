@@ -11,6 +11,7 @@ public class FagkaffeContext : DbContext
     public DbSet<Candidate> Candidates { get; set; }
     public DbSet<Lecture> Lectures { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,9 @@ public class FagkaffeContext : DbContext
 
             c.HasMany(c => c.RegisteredPresenters)
             .WithMany(u => u.RegisteredOnCandidates);
+
+            c.HasMany(c => c.VotedOnBy)
+            .WithMany(u => u.VotedOn);
         });
 
 
@@ -41,6 +45,9 @@ public class FagkaffeContext : DbContext
 
             l.HasMany(l => l.HeldBy)
             .WithMany(u => u.PresentsLectures);
+
+            l.HasMany(l => l.Tags)
+            .WithMany(t => t.UsedOn);
         });
 
         base.OnModelCreating(modelBuilder);

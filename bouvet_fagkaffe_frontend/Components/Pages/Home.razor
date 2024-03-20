@@ -18,15 +18,17 @@
     </div>
     <div class="row">
         <div class="col-6">
-            <h3>My Lectures:</h3>
+            <h3>My Lectures</h3>
             @if (lectures != null && lectures.Count() > 0)
             {
                 @foreach (var lecture in lectures)
                 {
-                    @if(lecture.HeldBy.Contains(user!))
+                    @if(lecture.HeldBy.Contains(user!) && lecture.Status != LectureStatus.Cancelled)
                     {
                          <LectureComp 
-                             lecture="@lecture">
+                             lecture="@lecture"
+                             isAdminOrHomeView="@isHomeView"
+                             user="@user">
                          </LectureComp>
                     }
                 }
@@ -76,6 +78,7 @@
 
     private List<Lecture>? lectures { get; set; }
     private List<Candidate>? candidates { get; set; }
+    private bool isHomeView { get; set; } = true;
 
 
     // override intitialization of the page
@@ -88,5 +91,4 @@
         }
         await base.OnInitializedAsync();
     }
-
 }

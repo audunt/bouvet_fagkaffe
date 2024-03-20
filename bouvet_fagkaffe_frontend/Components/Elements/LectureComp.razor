@@ -1,27 +1,290 @@
-﻿<div class="card">
-    <div class="card-header">@(lecture.Department ?? "Open to all")</div>
-    <div class="card-body">
-        <h5 class="card-title">@lecture.Title</h5>
-        <p class="card-subtitle"><small>@lecture.HeldAt</small></p>
-        <p class="card-text">Summary: @lecture.Summary</p>
-        <p class="card-text">
-            Registerred Presenters:
-            @foreach (var user in lecture.HeldBy)
+﻿@inject Operations _operations
+
+@if (editMode)
+{
+    <div class="card">
+        <div class="card-header">
+            @(lecture.Department ?? "Open to all")
+            <button class="btn btn-outline-primary btn-sm" @onclick="ToggleEdit">Display</button>
+        </div>
+        <div class="card-body">
+            @if(lecture.Status != LectureStatus.Planned)
             {
-                @user.Email
+                    @if(!lecture.ApprovedByPresenter && lecture.HeldBy.Contains(user!))
+                    {
+                        <EditForm Model="@editLecture" OnValidSubmit=@(() => Submit("presenter")) FormName="editLecture">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="form-group">
+                                <label for="title">Title:</label>
+                                <InputText class="form-control" @bind-Value="editLecture!.Title" />
+                            </div>
+                            <div class="form-group">
+                                <label for="topic">Topic:</label>
+                                <InputText class="form-control" @bind-Value="editLecture!.Topic" />
+                            </div>
+                            <div class="form-group">
+                                <label for="summary">Summary:</label>
+                                <InputTextArea class="form-control" @bind-Value="editLecture!.Summary" />
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">Submit for planning</button>
+                            </div>
+                        </EditForm>
+                    }
+                    else if(lecture.ApprovedByPresenter && !lecture.ApprovedByAdmin && user!.IsAdmin)
+                    {
+                        <EditForm Model="@editLecture" OnValidSubmit=@(() => Submit("admin")) FormName="editLecture">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="form-group">
+                                <label for="time">Time:</label>
+                                <InputDate Type="@InputDateType.DateTimeLocal" class="form-control" @bind-Value="editLecture!.HeldAt" />
+                            </div>
+                            <div class="form-group">
+                                <label for="location">Location:</label>
+                                    <InputText class="form-control" @bind-Value="editLecture.Location" />
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-primary" type="submit">Confirm as planned</button>
+                            </div>
+                    </EditForm>
+                    }
+                    else if(lecture.Status == LectureStatus.Cancelled)
+                    {
+                    <p>Lecture has been cancelled</p>
+                    }
+                    else if (lecture.Status == LectureStatus.Completed)
+                    {
+                        <p>Lecture is completed</p>
+                    }
+                    else
+                    {
+                        <p>Wait for approval</p>
+                    }
             }
-        </p>
+            else
+            {
+                <button class="btn btn-danger" @onclick="CancelLecture">Cancel lecture</button>
+                <button class="btn btn-warning" @onclick="RevertToPlanning">Revert to planning</button>
+
+                <EditForm Model="@editMeetingLink" OnValidSubmit=@(AddMeetingLink) FormName="editMeetingLink">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <InputText class="form-control" @bind-Value="editMeetingLink.Description" />
+                    </div>
+                    <div class="form-group">
+                        <label for="link">Link:</label>
+                        <InputText class="form-control" @bind-Value="editMeetingLink.Link" />
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Add Link</button>
+                    </div>
+                </EditForm>
+                <EditForm Model="@editTag" OnValidSubmit=@(AddTag) FormName="editMeetingLink">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="description">Tag:</label>
+                        <InputText class="form-control" @bind-Value="editTag" />
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Add Tag</button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+        <div class="card-footer">
+            @if (lecture.Status == LectureStatus.Planned && lecture.HeldAt != null && IsOverdue())
+            {
+                <button class="btn btn-success" @onclick="MarkAsComplete">Mark as complete</button>
+            }
+        </div>
     </div>
-    <div class="card-footer">
-        Tags:
-        @foreach (var tag in lecture.Tags)
-        {
-            @tag
-        }
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            @(lecture.Department ?? "Open to all")
+            @if(isAdminOrHomeView && (user!.IsAdmin || lecture.HeldBy.Contains(user)))
+            {
+                <button class="btn btn-outline-primary btn-sm" @onclick="ToggleEdit">Edit</button>
+            }
+        </div>
+        <div class="card-body">
+            @if (lecture.Title == "")
+            {
+                <h5 class="card-title">No Title set</h5>
+            }
+            else
+            {
+                <h5 class="card-title">@(lecture.Title ?? "Missing title")</h5>
+            }
+            @if(lecture.HeldAt != null)
+            {
+                <p class="card-subtitle"><small>@(lecture.HeldAt)</small></p>
+            }
+            else
+            {
+                <p class="card-subtitle"><small>No time set yet</small></p>
+            }
+            <p class="card-text">Topic: @(lecture.Topic ?? "Missing topic")</p>
+            <p class="card-text">Summary: @(lecture.Summary ?? "Missing Summary")</p>
+            <p class="card-text">
+                Presenter(s):
+                @foreach (var user in lecture.HeldBy)
+                {
+                    @($"{user.FullName()} ")
+                }
+            </p>
+            @if(lecture.MeetingLinks.Count() > 0)
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" scope="col">MeetingLink(s):</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var link in lecture.MeetingLinks)
+                        {
+                            <tr>
+                                <td><a href="@link.Link" target="_blank">@link.Description</a></td>
+                                @if(isAdminOrHomeView)
+                                {
+                                    <td><button class="btn btn-danger btn-sm" @onclick="@(() => RemoveMeetingLink(link))">Remove</button></td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <div class="card-footer">
+            Tags:
+            @if(lecture.Tags.Count() == 0)
+            {
+                <p>No tags have been set yet</p>
+            }
+            else
+            {
+                @foreach (var tag in lecture.Tags)
+                {
+                    @($"{tag.Value} ")
+                }
+            }
+        </div>
     </div>
-</div>
+}
 
 @code {
     [Parameter]
+    public User? user { get; set; }
+    [Parameter]
     public required Lecture lecture { get; set; }
+    [Parameter]
+    public bool isAdminOrHomeView { get; set; }
+
+    [SupplyParameterFromForm]
+    public required Lecture editLecture { get; set; }
+    [SupplyParameterFromForm]
+    public required MeetingLink editMeetingLink { get; set; }
+    [SupplyParameterFromForm]
+    public required string editTag { get; set; } = "";
+
+
+    private bool editMode { get; set; } = false;
+
+    private void ToggleEdit()
+    {
+        if (editMode)
+            editMode = false;
+        else
+            editMode = true;
+        editLecture = lecture;
+        editMeetingLink = new()
+            {
+                Description = "",
+                Link = ""
+            };
+    }
+
+    public async Task Submit(string role)
+    {
+        if (role == "presenter" && !(string.IsNullOrEmpty(editLecture.Title) || string.IsNullOrEmpty(editLecture.Title) || string.IsNullOrEmpty(editLecture.Summary)))
+            editLecture.ApprovedByPresenter = true;
+
+        if (role == "admin" && !(editLecture.HeldAt == null || string.IsNullOrEmpty(editLecture.Location)))
+            editLecture.ApprovedByAdmin = true;
+
+        if (editLecture.ApprovedByPresenter && editLecture.ApprovedByAdmin)
+            editLecture.Status = LectureStatus.Planned;
+        lecture = await _operations.UpdateLecture(editLecture);
+        editMode = false;
+        StateHasChanged();
+    }
+
+    public async Task AddMeetingLink()
+    {
+        if (!(string.IsNullOrWhiteSpace(editMeetingLink.Description) && string.IsNullOrWhiteSpace(editMeetingLink.Link)))
+        {
+            editLecture.MeetingLinks.Add(editMeetingLink);
+            lecture = await _operations.UpdateLecture(editLecture);
+            editMeetingLink.Description = "";
+            editMeetingLink.Link = "";
+            StateHasChanged();
+        }
+    }
+
+    public async Task RemoveMeetingLink(MeetingLink link)
+    {
+        lecture.MeetingLinks.Remove(link);
+        lecture = await _operations.UpdateLecture(lecture);
+    }
+
+    public async Task AddTag()
+    {
+        lecture = await _operations.AddTagToLecture(editTag, lecture.Id);
+        editTag = "";
+        StateHasChanged();
+    }
+
+    public async Task CancelLecture()
+    {
+        lecture.Status = LectureStatus.Cancelled;
+        lecture = await _operations.UpdateLecture(lecture);
+        StateHasChanged();
+    }
+
+    public async Task RevertToPlanning()
+    {
+        lecture.Status = LectureStatus.Accepted;
+        lecture.ApprovedByAdmin = false;
+        lecture.ApprovedByPresenter = false;
+        lecture = await _operations.UpdateLecture(lecture);
+        StateHasChanged();
+    }
+
+    public async Task MarkAsComplete()
+    {
+        lecture.Status = LectureStatus.Completed;
+        lecture = await _operations.UpdateLecture(lecture);
+        StateHasChanged();
+    }
+
+    public bool IsOverdue()
+    {
+        DateTimeOffset time;
+        if (lecture.HeldAt != null)
+        {
+            time = lecture.HeldAt.Value;
+            var compare = DateTimeOffset.Compare(time, DateTimeOffset.Now);
+            if (compare < 0)
+                return true;
+        }
+        return false;
+    }
 }
