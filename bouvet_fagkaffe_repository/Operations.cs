@@ -25,6 +25,8 @@ public class Operations(FagkaffeContext context)
             c.Department != null &&
             department.Contains(c.Department) &&
             c.Status == CandidateStatus.Submitted)
+            .Include(u => u.RegisteredPresenters)
+            .Include(u => u.VotedOnBy)
             .ToListAsync();
     }
 

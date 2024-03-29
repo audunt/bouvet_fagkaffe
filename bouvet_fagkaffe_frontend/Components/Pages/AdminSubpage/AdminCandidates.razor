@@ -2,38 +2,42 @@
 @inject Operations _operations
 @inject NavigationManager _navigation
 @rendermode InteractiveServer
-@page "/admin"
+@page "/admin/candidates"
 
-@if(user != null && user.IsAdmin)
+@if (user != null && user.IsAdmin) 
 {
     <div class="container">
         <div class="row">
             <div class="btn-group">
-                <button class="btn btn-secondary" disabled>Admin</button>
-                <button class="btn btn-primary" @onclick="MoveToCandidates">Candidates</button>
+                <button class="btn btn-primary" @onclick="MoveToAdmin">Admin</button>
+                <button class="btn btn-secondary" disabled>Candidates</button>
                 <button class="btn btn-primary" @onclick="MoveToLectures">Unplanned lectures</button>
             </div>
         </div>
         <div class="row">
-            <div class="col-9">
-                <h3>Upcoming Lectures</h3>
-                @if (lectures != null && lectures.Count() > 0)
+            <div class="col-12">
+                @if (candidates != null && candidates.Count() > 0)
                 {
-                    @foreach (var lecture in lectures)
-                    {
-                        @if (lecture.Status == LectureStatus.Planned)
+                    <div class="container">
+                        <div class ="row row-cols-2">
+                        @foreach (var candidate in candidates)
                         {
-                            <LectureComp 
-                                lecture="@lecture"
-                                isAdminOrHomeView = "@isAdminView"
-                                user = "@user">
-                            </LectureComp>
+                            @if (candidate.Status == CandidateStatus.Submitted)
+                            {
+                                <div class="col">
+                                    <CandidateComp candidate="@candidate"
+                                                   user="@user"
+                                                   isAdminView="@isAdminView">
+                                    </CandidateComp>
+                                </div>
+                            }
                         }
-                    }
+                        </div>
+                    </div>
                 }
-                else if (lectures != null && lectures.Count() == 0)
+                else if (candidates != null && candidates.Count() == 0)
                 {
-                    <p>There are currently no lectures to display</p>
+                    <p>There are currently no candidates to display</p>
                 }
                 else
                 {
@@ -44,12 +48,8 @@
                     </div>
                 }
             </div>
-            <div class="col-3">
-                <h3>Placeholder for calendar</h3>
-            </div>
         </div>
     </div>
-    
 }
 else
 {
@@ -60,7 +60,6 @@ else
     [CascadingParameter]
     private User? user { get; set; }
 
-    private List<Lecture>? lectures { get; set; }
     private List<Candidate>? candidates { get; set; }
 
     private bool isAdminView = true;
@@ -69,19 +68,18 @@ else
     {
         if (user != null && user.Groups != null)
         {
-            lectures = await _operations.GetAllLecturesByDepartments(user.Groups);
             candidates = await _operations.GetAllCandidatesByDepartments(user.Groups);
         }
         await base.OnInitializedAsync();
     }
 
-    private void MoveToCandidates()
-    {
-        _navigation.NavigateTo("admin/candidates", true);
-    }
-
     private void MoveToLectures()
     {
         _navigation.NavigateTo("admin/lectures", true);
+    }
+
+    private void MoveToAdmin()
+    {
+        _navigation.NavigateTo("admin", true);
     }
 }
