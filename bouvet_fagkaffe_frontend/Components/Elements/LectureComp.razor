@@ -1,4 +1,5 @@
 ﻿@inject Operations _operations
+@inject NavigationManager Navigation
 
 @if (editMode)
 {
@@ -224,15 +225,15 @@ else
             editLecture.Status = LectureStatus.Planned;
         lecture = await _operations.UpdateLecture(editLecture);
         editMode = false;
-        StateHasChanged();
+        Navigation.Refresh(true);
     }
 
     public async Task AddMeetingLink()
     {
         if (!(string.IsNullOrWhiteSpace(editMeetingLink.Description) && string.IsNullOrWhiteSpace(editMeetingLink.Link)))
         {
-            editLecture.MeetingLinks.Add(editMeetingLink);
-            lecture = await _operations.UpdateLecture(editLecture);
+            lecture = await _operations.AddMeetingLinkToLecture(editMeetingLink, lecture.Id);
+
             editMeetingLink.Description = "";
             editMeetingLink.Link = "";
             StateHasChanged();
@@ -256,7 +257,7 @@ else
     {
         lecture.Status = LectureStatus.Cancelled;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        Navigation.Refresh(true);
     }
 
     public async Task RevertToPlanning()
@@ -265,14 +266,14 @@ else
         lecture.ApprovedByAdmin = false;
         lecture.ApprovedByPresenter = false;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        Navigation.Refresh(true);
     }
 
     public async Task MarkAsComplete()
     {
         lecture.Status = LectureStatus.Completed;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        Navigation.Refresh(true);
     }
 
     public bool IsOverdue()

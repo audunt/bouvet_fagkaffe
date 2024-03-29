@@ -70,9 +70,14 @@ public class Operations(FagkaffeContext context)
     #endregion
 
     #region Lecture
-    public ValueTask<Lecture?> GetLecture(Guid id)
+    public async Task<Lecture?> GetLecture(Guid id)
     {
-        return _context.Lectures.FindAsync(id);
+        var lecture = await _context.Lectures
+            .Include(u => u.HeldBy)
+            .Include(m => m.MeetingLinks)
+            .Include(t => t.Tags)
+            .FirstOrDefaultAsync(l => l.Id == id);
+        return lecture;
     }
 
     public Task<List<Lecture>> GetAllLecturesForUser(User user)
@@ -230,14 +235,33 @@ public class Operations(FagkaffeContext context)
         var lecture = await GetLecture(lectureId);
         if (lecture != null)
         {
+            if (lecture.Tags.Contains(tag))
+                return lecture;
             lecture.Tags.Add(tag);
             lecture = await UpdateLecture(lecture);
             return lecture;
         }
         else
-            throw new Exception("Couldnt add the tag to lecture");
+            throw new Exception("Could not add the tag to lecture");
     }
 
+
+    #endregion
+
+    #region MeetingLinks
+
+    public async Task<Lecture> AddMeetingLinkToLecture(MeetingLink link, Guid lectureId)
+    {
+        var lecture = await GetLecture(lectureId);
+        if (lecture != null)
+        {
+            lecture.MeetingLinks.Add(link);
+            lecture = await UpdateLecture(lecture);
+            return lecture;
+        }
+        else
+            throw new Exception("Could not add the link to lecture");
+    }
 
     #endregion
 }
