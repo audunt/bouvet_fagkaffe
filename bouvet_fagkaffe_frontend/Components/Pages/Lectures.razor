@@ -7,7 +7,7 @@
 <br />
 <div class="container">
     <div class="row">
-        <div class="col-6">
+        <div class="col-12">
             <h5>All lectures in your department</h5>
             @if (departmentLectures != null && departmentLectures.Count() > 0)
             {
@@ -19,26 +19,6 @@
                 }
             }
             else if (departmentLectures != null && departmentLectures.Count() == 0)
-            {
-                <p>There are no lectures to display</p>
-            }
-            else
-            {
-                <p>Loading...</p>
-            }
-        </div>
-        <div class="col-6">
-            <h5>All open lectures</h5>
-            @if (openLectures != null && openLectures.Count() > 0)
-            {
-                @foreach (var lecture in openLectures)
-                {
-                    <LectureComp lecture=@lecture>
-
-                    </LectureComp>
-                }
-            }
-            else if (openLectures != null && openLectures.Count() == 0)
             {
                 <p>There are no lectures to display</p>
             }
@@ -62,7 +42,6 @@
     {
         if (user != null)
             departmentLectures = await _operations.GetAllDisplayLecturesForUser(user);
-            openLectures = await _operations.GetAllDisplayLecturesNoDepartment();
 
         await base.OnInitializedAsync();
     }

@@ -1,4 +1,5 @@
 ﻿@inject Operations _operations
+@inject NavigationManager _navigation
 
 @if (editMode)
 {
@@ -115,7 +116,7 @@ else
             }
         </div>
         <div class="card-body">
-            @if (lecture.Title == "")
+            @if(lecture.Title == "")
             {
                 <h5 class="card-title">No Title set</h5>
             }
@@ -131,6 +132,7 @@ else
             {
                 <p class="card-subtitle"><small>No time set yet</small></p>
             }
+            <p class="card-text">Location: @(lecture.Location ?? "No location set yet")</p>
             <p class="card-text">Topic: @(lecture.Topic ?? "Missing topic")</p>
             <p class="card-text">Summary: @(lecture.Summary ?? "Missing Summary")</p>
             <p class="card-text">
@@ -224,15 +226,15 @@ else
             editLecture.Status = LectureStatus.Planned;
         lecture = await _operations.UpdateLecture(editLecture);
         editMode = false;
-        StateHasChanged();
+        _navigation.Refresh(true);
     }
 
     public async Task AddMeetingLink()
     {
         if (!(string.IsNullOrWhiteSpace(editMeetingLink.Description) && string.IsNullOrWhiteSpace(editMeetingLink.Link)))
         {
-            editLecture.MeetingLinks.Add(editMeetingLink);
-            lecture = await _operations.UpdateLecture(editLecture);
+            lecture = await _operations.AddMeetingLinkToLecture(editMeetingLink, lecture.Id);
+
             editMeetingLink.Description = "";
             editMeetingLink.Link = "";
             StateHasChanged();
@@ -256,7 +258,7 @@ else
     {
         lecture.Status = LectureStatus.Cancelled;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        _navigation.Refresh(true);
     }
 
     public async Task RevertToPlanning()
@@ -265,14 +267,14 @@ else
         lecture.ApprovedByAdmin = false;
         lecture.ApprovedByPresenter = false;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        _navigation.Refresh(true);
     }
 
     public async Task MarkAsComplete()
     {
         lecture.Status = LectureStatus.Completed;
         lecture = await _operations.UpdateLecture(lecture);
-        StateHasChanged();
+        _navigation.Refresh(true);
     }
 
     public bool IsOverdue()

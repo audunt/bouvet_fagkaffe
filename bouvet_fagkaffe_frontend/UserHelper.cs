@@ -46,6 +46,8 @@ public class UserHelper(Operations operations, IConfiguration configuration)
             user.Groups = GetUserGroups(principal);
             if (user.Groups.Contains("Admin"))
                 user.IsAdmin = true;
+            else
+                user.IsAdmin = false;
 
             user = await Operations.UpdateUser(user);
         }
