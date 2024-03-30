@@ -1,70 +1,94 @@
 ﻿@using System.Security.Claims
 @using bouvet_fagkaffe_frontend.Components.Elements
 @inject Operations _operations
+@inject NavigationManager _navigation
 @rendermode InteractiveServer
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Bouvet Fagkaffe</h1>
+<p>Welcome to fagkaffe @user?.FullName()</p>
 
 
 <div class="container">
     <div class="row">
-        <div class="col-12">
-            Welcome to fagkaffe @user?.FullName()
-            <br />
+        <div class="btn-group">
+            <button class="btn btn-secondary" disabled>Home</button>
+            <button class="btn btn-primary" @onclick="MoveToSearch">Search</button>
         </div>
     </div>
     <div class="row">
         <div class="col-6">
             <h3>My Lectures</h3>
-            @if (lectures != null && lectures.Count() > 0)
-            {
-                @foreach (var lecture in lectures)
-                {
-                    @if(lecture.HeldBy.Contains(user!) && lecture.Status != LectureStatus.Cancelled)
+            <div class="container">
+                <div class="row row-cols-2">
+                    @if (lectures != null && lectures.Count() > 0)
                     {
-                         <LectureComp 
-                             lecture="@lecture"
-                             isAdminOrHomeView="@isHomeView"
-                             user="@user">
-                         </LectureComp>
+                        @foreach (var lecture in lectures)
+                        {
+                            @if(lecture.HeldBy.Contains(user!) && lecture.Status != LectureStatus.Cancelled)
+                            {
+                                <div class="col">
+                                     <LectureComp 
+                                         lecture="@lecture"
+                                         isAdminOrHomeView="@isHomeView"
+                                         user="@user">
+                                     </LectureComp>
+                                     <br />
+                                 </div>
+                            }
+                        }
                     }
-                }
-            }
-            else if (lectures != null && lectures.Count() == 0)
-            {
-                <p>There are currently no lectures to display</p>
-            }
-            else 
-            {
-                <p>Loading...</p>
-            }
+                    else if (lectures != null && lectures.Count() == 0)
+                    {
+                        <p>There are currently no lectures to display</p>
+                    }
+                    else 
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
         <div class="col-6">
             <h3>My Candidates</h3>
-            @if (candidates != null && candidates.Count() > 0)
-            {
-                @foreach (var candidate in candidates)
+            <div class="container">
+                <div class="row row-cols-2">
+                @if (candidates != null && candidates.Count() > 0)
                 {
-                    @if(candidate.ProposedBy == user || candidate.RegisteredPresenters.Contains(user!))
+                    @foreach (var candidate in candidates)
                     {
-                        <CandidateComp 
-                            candidate="@candidate"
-                            user="@user">
-                        </CandidateComp>
+                        @if(candidate.ProposedBy == user || candidate.RegisteredPresenters.Contains(user!))
+                        {
+                            <div class="col">
+                                <CandidateComp 
+                                    candidate="@candidate"
+                                    user="@user">
+                                </CandidateComp>
+                                <br />
+                            </div>
+                        }
                     }
                 }
-            }
-            else if (candidates != null && candidates.Count() == 0)
-            {
-                <p>There are currently no candidates to display</p>
-            }
-            else
-            {
-                <p>Loading...</p>
-            }
+                else if (candidates != null && candidates.Count() == 0)
+                {
+                    <p>There are currently no candidates to display</p>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -90,5 +114,10 @@
             candidates = await _operations.GetAllCandidatesForUser(user);
         }
         await base.OnInitializedAsync();
+    }
+
+    private void MoveToSearch()
+    {
+        _navigation.NavigateTo("home/search", true);
     }
 }

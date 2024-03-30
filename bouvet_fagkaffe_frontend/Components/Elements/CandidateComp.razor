@@ -13,7 +13,7 @@
             }
             <p class="card-text">Summary: @candidate.Summary</p>
             <p class="card-text">
-                Registerred Presenters:
+                Registered Presenters:
                 @foreach (var user in candidate.RegisteredPresenters)
                 {
                     @($"{user.FullName()} ")
@@ -22,25 +22,27 @@
             <div>
                 @if (!isAdminView)
                 {
-                    @if (candidate.Type == CandidateType.Request)
-                    {
-                        @if(!candidate.RegisteredPresenters.Contains(user))
+                    <div class="btn-group btn-group-sm">
+                        @if (candidate.Type == CandidateType.Request)
                         {
-                            <button class="btn btn-primary" @onclick="() => AddPresenter()">Register as presenter</button>
+                            @if(!candidate.RegisteredPresenters.Contains(user))
+                            {
+                                <button class="btn btn-primary" @onclick="() => AddPresenter()">Register</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary" @onclick="@RemovePresenter">Unregister</button>
+                            }
+                        }
+                        @if(!candidate.VotedOnBy.Contains(user))
+                        {
+                            <button class="btn btn-primary" @onclick="AddVote">Interested</button>
                         }
                         else
                         {
-                            <button class="btn btn-secondary" @onclick="@RemovePresenter">Unregister as presenter</button>
+                            <button class="btn btn-secondary" @onclick="RemoveVote">Uninterested</button>
                         }
-                    }
-                    @if(!candidate.VotedOnBy.Contains(user))
-                    {
-                        <button class="btn btn-primary" @onclick="AddVote">Interested</button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-secondary" @onclick="RemoveVote">Uninterested</button>
-                    }
+                    </div>
                 }
             </div>
         </div>
