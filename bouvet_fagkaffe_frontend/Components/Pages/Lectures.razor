@@ -9,23 +9,34 @@
     <div class="row">
         <div class="col-12">
             <h5>All lectures in your department</h5>
-            @if (departmentLectures != null && departmentLectures.Count() > 0)
-            {
-                @foreach (var lecture in departmentLectures)
+            <div class="container">
+                <div class="row row-cols-2">
+                @if (departmentLectures != null && departmentLectures.Count() > 0)
                 {
-                    <LectureComp lecture=@lecture>
+                    @foreach (var lecture in departmentLectures)
+                    {
+                        <div>
+                            <LectureComp lecture=@lecture>
 
-                    </LectureComp>
+                            </LectureComp>
+                            <br />
+                        </div>
+                    }
                 }
-            }
-            else if (departmentLectures != null && departmentLectures.Count() == 0)
-            {
-                <p>There are no lectures to display</p>
-            }
-            else
-            {
-                <p>Loading...</p>
-            }
+                else if (departmentLectures != null && departmentLectures.Count() == 0)
+                {
+                    <p>There are no lectures to display</p>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                </div>
+            </div>
         </div>
     </div>
 </div>

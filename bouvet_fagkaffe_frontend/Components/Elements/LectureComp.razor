@@ -126,7 +126,7 @@ else
             }
             @if(lecture.HeldAt != null)
             {
-                <p class="card-subtitle"><small>@(lecture.HeldAt)</small></p>
+                <p class="card-subtitle"><small>@($"{lecture.HeldAt.Value.DateTime.ToShortDateString()} {lecture.HeldAt.Value.DateTime.ToShortTimeString()}")</small></p>
             }
             else
             {

@@ -1,5 +1,127 @@
-﻿<h3>HomeSearch</h3>
+﻿@using bouvet_fagkaffe_frontend.Components.Elements
+@inject Operations _operations
+@inject NavigationManager _navigation
+@rendermode InteractiveServer
+@page "/home/search"
+
+<div class="container">
+    <div class="row">
+        <div class="btn-group">
+            <button class="btn btn-primary" @onclick="MoveToHome">Home</button>
+            <button class="btn btn-secondary" disabled>Search</button>
+        </div>
+    </div>
+    <div class="row">
+        @if(lectures!= null && lectures.Count() > 0)
+        {
+            <div class="form-group">
+                <input class="form-control" type="text" placeholder="Filter..."
+                       @bind="search"
+                       @bind:event="oninput">
+            </div>
+            <table class="table table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Topic</th>
+                        <th scope="col">Summary</th>
+                        <th scope="col">HeldBy</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Department</th>
+                        <th scope="col">Tags</th>
+                        <th scope="col">Links</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var lecture in lectures)
+                    {
+                        @if (!IsVisible(lecture))
+                            continue;
+                        <tr>
+                            <td>@lecture.Title</td>
+                            <td>@lecture.Topic</td>
+                            <td>@lecture.Summary</td>
+                            <td>
+                                @foreach(var user in lecture.HeldBy)
+                                {
+                                    @($"{user.FullName()}")
+                                }
+                            </td>
+                            <td>@(lecture.Location ?? "No location set")</td>
+                            <td>@lecture.Department</td>
+                            <td>
+                                @foreach(var tag in lecture.Tags)
+                                {
+                                    @($"{tag.Value} ")
+                                }
+                            </td>
+                            <td>
+                                <ul>
+                                    @foreach (var link in lecture.MeetingLinks)
+                                    {
+                                        <li>
+                                            <a href="@link.Link" target="_blank">@link.Description</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+</div>
 
 @code {
+    [CascadingParameter]
+    private User? user { get; set; }
+    private List<Lecture>? lectures { get; set; }
+    public string? search { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (user != null && user.Groups != null)
+        {
+            lectures = await _operations.GetAllLecturesByDepartments(user.Groups);
+        }
+        await base.OnInitializedAsync();
+    }
+
+    public bool IsVisible(Lecture lecture)
+    {
+        if (string.IsNullOrEmpty(search))
+            return true;
+
+        search = search.ToLower();
+
+        if (lecture.Title.StartsWith(search) || lecture.Topic.Contains(search))
+            return true;
+
+        if (lecture.Department != null && lecture.Department.ToLower().StartsWith(search))
+            return true;
+
+        if (lecture.Location != null && lecture.Location.ToLower().StartsWith(search))
+            return true;
+
+        foreach(var tag in lecture.Tags)
+        {
+            if (tag.Value.StartsWith(search))
+                return true;
+        }
+
+        foreach (var user in lecture.HeldBy)
+        {
+            if (user.FirstName.ToLower().StartsWith(search) || user.LastName.ToLower().StartsWith(search))
+                return true;
+        }
+
+        return false;
+    }
+
+    private void MoveToHome()
+    {
+        _navigation.NavigateTo("/", true);
+    }
 }
