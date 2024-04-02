@@ -29,7 +29,9 @@ else
 
 builder.Services.AddDbContext<FagkaffeContext>(options =>
 {
-    options.UseSqlServer(connection);
+    options.UseSqlServer(
+        connection, 
+        options => options.EnableRetryOnFailure());
 });
 
 // Adding Authentication with SAML

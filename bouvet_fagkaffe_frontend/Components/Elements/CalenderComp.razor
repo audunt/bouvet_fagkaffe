@@ -12,7 +12,7 @@
                         @{var lecture = IsTaken(date);}
                         @if (lecture != null)
                         {
-                            <p>@($"{lecture.Title} {lecture.HeldAt!.Value.Date.ToShortDateString()}")</p>
+                            <p>@($"{lecture.Title} {lecture.HeldAt!.Value.LocalDateTime.ToShortTimeString()}")</p>
                         }
                         else
                         {
