@@ -1,7 +1,7 @@
 ﻿using bouvet_fagkaffe_repository;
 using bouvet_fagkaffe_repository.Models;
 
-namespace bouvet_fagkaffe_frontend
+namespace bouvet_fagkaffe_frontend.Services
 {
     public class LectureHelper(Operations operations)
     {
