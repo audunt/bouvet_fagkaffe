@@ -20,7 +20,7 @@
     </div>
     <div class="row">
         <div class="col-6">
-            <h3>My Lectures</h3>
+            <h3>My Upcoming Lectures</h3>
             <div class="container">
                 <div class="row row-cols-2">
                     @if (lectures != null && lectures.Count() > 0)
@@ -42,7 +42,7 @@
                     }
                     else if (lectures != null && lectures.Count() == 0)
                     {
-                        <p>There are currently no lectures to display</p>
+                        <p>You have no upcoming lectures</p>
                     }
                     else 
                     {

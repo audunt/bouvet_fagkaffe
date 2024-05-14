@@ -96,7 +96,7 @@
 
         search = search.ToLower();
 
-        if (lecture.Title.StartsWith(search) || lecture.Topic.Contains(search))
+        if (lecture.Title.ToLower().StartsWith(search) || lecture.Topic.ToLower().Contains(search))
             return true;
 
         if (lecture.Department != null && lecture.Department.ToLower().StartsWith(search))

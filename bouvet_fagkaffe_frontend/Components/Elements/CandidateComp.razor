@@ -56,12 +56,21 @@
                     <label class="form-check-label" for="@presenter.Email">@presenter.Email</label>
                 </div>
             }
-            @if(candidate.RegisteredPresenters.Count() > 0)
+            @if(candidate.RegisteredPresenters.Count() > 0 && presenters.Count() > 0)
             {
                 <button class="btn btn-primary" @onclick="ConfirmPresenters">
                     Confirm presenter(s)
                 </button>
             }
+            else
+            {
+                <button class="btn btn-secondary" disabled>
+                    Confirm presenter(s)
+                </button>
+            }
+            <button class="btn btn-danger" @onclick="RejectCandidate">
+                Reject Candidate
+            </button>
         }
     </div>
 }
@@ -71,6 +80,16 @@ else if (isConvertedToLecture)
         <div class="card-header">
             <div class="card-body">
                 <p>Converted to lecture</p>
+            </div>
+        </div>
+    </div>
+}
+else if (isRejected)
+{
+    <div class="card">
+        <div class="card-header">
+            <div class="card-body">
+                <p>Candidate was rejected</p>
             </div>
         </div>
     </div>
@@ -96,6 +115,7 @@ else
 
     private List<User> presenters { get; set; } = [];
     private bool isConvertedToLecture = false;
+    private bool isRejected = false;
 
     private async Task AddPresenter()
     {
@@ -130,7 +150,17 @@ else
 
     private async Task ConfirmPresenters()
     {
-        isConvertedToLecture = true;
-        await _lectureHelper.ConvertToLecture(candidate, presenters);
+        if(presenters.Count() > 0)
+        {
+            isConvertedToLecture = true;
+            await _lectureHelper.ConvertToLecture(candidate, presenters);
+        }
+    }
+
+    private async Task RejectCandidate()
+    {
+        isRejected = true;
+        candidate.Status = CandidateStatus.Rejected;
+        await _operations.UpdateCandidate(candidate);
     }
 }

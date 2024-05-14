@@ -1,5 +1,5 @@
-using bouvet_fagkaffe_frontend;
 using bouvet_fagkaffe_frontend.Components;
+using bouvet_fagkaffe_frontend.Services;
 using bouvet_fagkaffe_repository;
 using bouvet_fagkaffe_repository.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,7 +29,9 @@ else
 
 builder.Services.AddDbContext<FagkaffeContext>(options =>
 {
-    options.UseSqlServer(connection);
+    options.UseSqlServer(
+        connection, 
+        options => options.EnableRetryOnFailure());
 });
 
 // Adding Authentication with SAML

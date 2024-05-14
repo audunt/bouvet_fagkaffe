@@ -2,7 +2,7 @@
 using bouvet_fagkaffe_repository.Models;
 using System.Security.Claims;
 
-namespace bouvet_fagkaffe_frontend;
+namespace bouvet_fagkaffe_frontend.Services;
 
 public class UserHelper(Operations operations, IConfiguration configuration)
 {
@@ -57,32 +57,32 @@ public class UserHelper(Operations operations, IConfiguration configuration)
     #region claims
     public string GetUserFirstName(ClaimsPrincipal principal)
     {
-        var firstName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/FirstName")?.Value;
+        var firstName = principal.FindFirst(Configuration.GetValue<string>($"Claims:FirstName")!)?.Value;
         return firstName ?? throw new Exception("No first name found");
     }
 
     public string GetUserLastName(ClaimsPrincipal principal)
     {
-        var lastName = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/LastName")?.Value;
+        var lastName = principal.FindFirst(Configuration.GetValue<string>($"Claims:LastName")!)?.Value;
         return lastName ?? throw new Exception("No last name found");
     }
 
     public string GetUserEmail(ClaimsPrincipal principal)
     {
-        var email = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/Email")?.Value;
+        var email = principal.FindFirst(Configuration.GetValue<string>($"Claims:Email")!)?.Value;
         return email ?? throw new Exception("No email found");
     }
 
     public string GetForeignId(ClaimsPrincipal principal)
     {
-        var foreignId = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+        var foreignId = principal.FindFirst(Configuration.GetValue<string>($"Claims:ForeignId")!)?.Value;
         return foreignId ?? throw new Exception("No foreign id found");
     }
 
     public List<string?> GetUserGroups(ClaimsPrincipal principal)
     {
         List<string?> groups = [];
-        var groupClaims = principal.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role").ToList();
+        var groupClaims = principal.FindAll(Configuration.GetValue<string>($"Claims:Groups")!).ToList();
         foreach (var groupClaim in groupClaims)
         {
             var groupName = Configuration.GetValue<string>($"Groups:{groupClaim.Value}");
